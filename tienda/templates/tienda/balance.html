@@ -1,0 +1,25 @@
+{% extends "tienda/base.html" %}{% load tienda_extras %}
+{% block content %}
+<h1 class="h3">Balance general</h1>
+{% include "tienda/_rango.html" %}
+<div class="row g-3">
+  <div class="col-lg-6"><div class="card card-body"><h2 class="h6">Lo que entró</h2>
+    <table class="table table-sm m-0">
+      <tr><td>Vendido en el periodo</td><td class="text-end">{{ r.total_vendido|cop }}</td></tr>
+      <tr><td>Dinero realmente cobrado</td><td class="text-end fw-bold">{{ r.cobrado|cop }}</td></tr></table></div></div>
+  <div class="col-lg-6"><div class="card card-body"><h2 class="h6">Lo que salió (negocio)</h2>
+    <table class="table table-sm m-0">
+      {% for clave, nombre in r.categorias %}<tr><td>{{ nombre }}</td><td class="text-end">{% for k, val in r.por_cat.items %}{% if k == clave %}{{ val|cop }}{% endif %}{% endfor %}</td></tr>{% endfor %}
+      <tr><th>Total gastos</th><th class="text-end">{{ r.total_gastos|cop }}</th></tr></table></div></div>
+  <div class="col-lg-4"><div class="card card-body"><small class="text-muted">Me quedó</small>
+    <div class="card-num {% if r.ganancia < 0 %}text-danger{% else %}text-success{% endif %}">{{ r.ganancia|cop }}</div></div></div>
+  <div class="col-lg-4"><div class="card card-body"><small class="text-muted">Clientas me deben</small><div class="card-num">{{ r.por_cobrar|cop }}</div></div></div>
+  <div class="col-lg-4"><div class="card card-body"><small class="text-muted">Debo a proveedores</small><div class="card-num">{{ r.por_pagar|cop }}</div></div></div>
+</div>
+<p class="mt-3">
+  {% if r.por_cat.salario %}✅ En este periodo se registró el salario de la propietaria.{% else %}⚠ No hay salario registrado en este periodo.{% endif %}
+  {% if r.por_cat.arriendo and r.por_cat.servicios %}Arriendo y servicios cubiertos.{% else %}Falta registrar arriendo o servicios.{% endif %}
+</p>
+{% if r.deudoras %}<h2 class="h5">Clientas con saldo pendiente</h2>
+<div class="card"><table class="table m-0">{% for c in r.deudoras %}<tr><td><a href="{% url 'cliente_detalle' c.pk %}">{{ c.nombre }}</a></td><td class="text-end text-danger">{{ c.saldo|cop }}</td></tr>{% endfor %}</table></div>{% endif %}
+{% endblock %}

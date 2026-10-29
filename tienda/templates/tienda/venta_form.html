@@ -1,0 +1,67 @@
+{% extends "tienda/base.html" %}{% load l10n %}
+{% block content %}
+<h1 class="h3">Nueva venta</h1>
+<form method="post" enctype="multipart/form-data" class="card card-body shadow-sm">{% csrf_token %}
+  <div class="row g-3">
+    {% for f in form %}
+    <div class="col-md-4"><label class="form-label">{{ f.label }}</label>{{ f }}
+      {% for e in f.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}</div>
+    {% endfor %}
+    <div class="col-md-4" id="caja-abono" style="display:none"><label class="form-label">Abono inicial (opcional)</label>
+      <input type="number" name="abono_inicial" min="0" class="form-control"></div>
+  </div>
+  <hr>
+  <h2 class="h6">Prendas</h2>
+  <div class="table-responsive"><table class="table align-middle" id="lineas">
+    <thead><tr><th style="min-width:260px">Prenda · talla · color</th><th>Cant.</th><th>Precio</th><th>Stock</th><th></th></tr></thead>
+    <tbody></tbody>
+  </table></div>
+  <div class="d-flex justify-content-between align-items-center">
+    <button type="button" id="agregar" class="btn btn-outline-secondary">+ Agregar prenda</button>
+    <div class="h5 m-0">Total: <span id="total">$ 0</span></div>
+  </div>
+  <button class="btn btn-kf mt-3">Registrar venta y generar recibo</button>
+</form>
+
+<template id="opciones">
+  <option value="">— Escoge —</option>
+  {% for v in variantes %}<option value="{{ v.pk }}" data-precio="{{ v.prenda.precio_venta|unlocalize }}" data-stock="{{ v.stock }}">{{ v }} ({{ v.stock }} disp.)</option>{% endfor %}
+</template>
+{% endblock %}
+{% block scripts %}
+<script>
+  const cuerpo = document.querySelector('#lineas tbody');
+  const opciones = document.getElementById('opciones').innerHTML;
+  const fmt = n => '$ ' + Math.round(n).toLocaleString('es-CO');
+
+  function agregar() {
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td><select name="variante" class="form-select">' + opciones + '</select></td>' +
+      '<td><input name="cantidad" type="number" min="1" value="1" class="form-control" style="width:80px"></td>' +
+      '<td><input name="precio" type="number" min="0" step="1" class="form-control" style="width:120px"></td>' +
+      '<td class="stock">—</td><td><button type="button" class="btn btn-sm btn-outline-danger">×</button></td>';
+    const sel = tr.querySelector('select'), cant = tr.querySelector('[name=cantidad]'), precio = tr.querySelector('[name=precio]');
+    sel.onchange = () => {
+      const o = sel.selectedOptions[0];
+      precio.value = o.dataset.precio || '';
+      tr.querySelector('.stock').textContent = o.dataset.stock || '—';
+      cant.max = o.dataset.stock || '';
+      total();
+    };
+    tr.querySelector('button').onclick = () => { tr.remove(); total(); };
+    tr.addEventListener('input', total);
+    cuerpo.appendChild(tr);
+  }
+  function total() {
+    let t = 0;
+    cuerpo.querySelectorAll('tr').forEach(tr => t += (+tr.querySelector('[name=cantidad]').value || 0) * (+tr.querySelector('[name=precio]').value || 0));
+    document.getElementById('total').textContent = fmt(t);
+  }
+  function modalidad() {
+    document.getElementById('caja-abono').style.display = document.getElementById('id_modalidad').value === 'credito' ? '' : 'none';
+  }
+  document.getElementById('agregar').onclick = agregar;
+  document.getElementById('id_modalidad').onchange = modalidad;
+  agregar(); modalidad();
+</script>
+{% endblock %}

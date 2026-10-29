@@ -1,0 +1,12 @@
+{% extends "tienda/base.html" %}{% load tienda_extras %}
+{% block content %}
+<h1 class="h3">Reporte de ventas, gastos y ganancia</h1>
+{% include "tienda/_rango.html" %}
+<div class="row g-3">
+  <div class="col-md-3"><div class="card card-body"><small class="text-muted">Total vendido ({{ r.num_ventas }} ventas)</small><div class="card-num">{{ r.total_vendido|cop }}</div></div></div>
+  <div class="col-md-3"><div class="card card-body"><small class="text-muted">Dinero cobrado</small><div class="card-num">{{ r.cobrado|cop }}</div></div></div>
+  <div class="col-md-3"><div class="card card-body"><small class="text-muted">Total gastos</small><div class="card-num">{{ r.total_gastos|cop }}</div></div></div>
+  <div class="col-md-3"><div class="card card-body"><small class="text-muted">Ganancia</small><div class="card-num {% if r.ganancia < 0 %}text-danger{% else %}text-success{% endif %}">{{ r.ganancia|cop }}</div></div></div>
+</div>
+<p class="text-muted small mt-3">Ganancia = dinero cobrado (ventas de contado + abonos) − gastos del negocio. Cambia las fechas para comparar un mes con otro.</p>
+{% endblock %}

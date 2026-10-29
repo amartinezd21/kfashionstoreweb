@@ -1,0 +1,28 @@
+{% extends "tienda/base.html" %}{% load tienda_extras %}
+{% block content %}
+<div class="d-flex gap-2 mb-3 no-print">
+  <button class="btn btn-kf" onclick="window.print()">Imprimir / guardar PDF</button>
+  {% if v.modalidad == 'credito' and v.saldo > 0 %}<a class="btn btn-outline-secondary" href="{% url 'abono_nuevo' v.pk %}">Registrar abono</a>{% endif %}
+  <a class="btn btn-outline-secondary" href="{% url 'ventas' %}">Volver</a>
+</div>
+<div class="card card-body mx-auto" style="max-width:640px">
+  <div class="text-center mb-3"><h1 class="h4 m-0" style="color:#b03a6f">K Fashion Store</h1><small class="text-muted">Cartagena, Colombia</small></div>
+  <div class="d-flex justify-content-between"><b>Recibo {{ v.numero }}</b><span>{{ v.fecha|date:"d/m/Y H:i" }}</span></div>
+  <div class="small text-muted mb-2">Atendió: {{ v.vendedor.first_name|default:v.vendedor.username }} · Clienta: {{ v.cliente|default:"Mostrador" }} · Canal: {{ v.get_canal_display }}</div>
+  <table class="table table-sm">
+    <tr><th>Prenda</th><th class="text-center">Cant.</th><th class="text-end">Precio</th><th class="text-end">Subtotal</th></tr>
+    {% for d in detalles %}<tr><td>{{ d.variante }}</td><td class="text-center">{{ d.cantidad }}</td>
+      <td class="text-end">{{ d.precio_unitario|cop }}</td><td class="text-end">{{ d.subtotal|cop }}</td></tr>{% endfor %}
+    <tr><th colspan="3" class="text-end">Total</th><th class="text-end">{{ v.total|cop }}</th></tr>
+  </table>
+  <div>Modalidad: <b>{{ v.get_modalidad_display }}</b> · Medio de pago: {{ v.get_medio_pago_display }}</div>
+  {% if v.modalidad == 'credito' %}
+    <div class="mt-2">Fecha límite: {{ v.fecha_limite|date:"d/m/Y" }} · Abonado: {{ v.pagado|cop }} · <b class="text-danger">Saldo: {{ v.saldo|cop }}</b></div>
+    {% if v.abonos.exists %}<table class="table table-sm mt-2"><tr><th>Abono</th><th>Medio</th><th class="text-end">Valor</th><th class="no-print"></th></tr>
+      {% for a in v.abonos.all %}<tr><td>{{ a.fecha|date:"d/m/Y" }}</td><td>{{ a.get_medio_pago_display }}</td><td class="text-end">{{ a.valor|cop }}</td>
+        <td class="no-print">{% if a.comprobante %}<a href="{{ a.comprobante.url }}" target="_blank">Comprobante</a>{% endif %}</td></tr>{% endfor %}</table>{% endif %}
+  {% endif %}
+  {% if v.comprobante %}<div class="no-print mt-2"><a href="{{ v.comprobante.url }}" target="_blank">Ver comprobante de pago</a></div>{% endif %}
+  <p class="text-center text-muted small mt-3 mb-0">¡Gracias por tu compra!</p>
+</div>
+{% endblock %}

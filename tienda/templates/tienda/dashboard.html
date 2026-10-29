@@ -1,0 +1,30 @@
+{% extends "tienda/base.html" %}{% load tienda_extras %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 m-0">Inicio</h1>
+  <a class="btn btn-kf" href="{% url 'venta_nueva' %}">+ Nueva venta</a>
+</div>
+<div class="row g-3 mb-4">
+  {% if r %}
+  <div class="col-6 col-lg-3"><div class="card card-body"><small class="text-muted">Vendido este mes</small><div class="card-num">{{ r.total_vendido|cop }}</div></div></div>
+  <div class="col-6 col-lg-3"><div class="card card-body"><small class="text-muted">Gastos este mes</small><div class="card-num">{{ r.total_gastos|cop }}</div></div></div>
+  <div class="col-6 col-lg-3"><div class="card card-body"><small class="text-muted">Ganancia (cobrado − gastos)</small><div class="card-num {% if r.ganancia < 0 %}text-danger{% else %}text-success{% endif %}">{{ r.ganancia|cop }}</div></div></div>
+  <div class="col-6 col-lg-3"><div class="card card-body"><small class="text-muted">Clientas me deben</small><div class="card-num">{{ r.por_cobrar|cop }}</div></div></div>
+  {% endif %}
+  <div class="col-12">
+    <a href="{% if es_propietaria %}{% url 'reponer' %}{% else %}{% url 'inventario' %}{% endif %}" class="text-decoration-none">
+      <div class="alert {% if alertas %}alert-warning{% else %}alert-success{% endif %} m-0">
+        {% if alertas %}⚠ {{ alertas }} prenda(s) por agotarse. Toca para ver.{% else %}Todo el inventario está sobre el mínimo.{% endif %}
+      </div>
+    </a>
+  </div>
+</div>
+<h2 class="h5">Últimas ventas</h2>
+<div class="table-responsive card"><table class="table m-0">
+  <tr><th>Recibo</th><th>Fecha</th><th>Clienta</th><th>Modalidad</th><th class="text-end">Total</th></tr>
+  {% for v in ultimas %}
+  <tr><td><a href="{% url 'recibo' v.pk %}">{{ v.numero }}</a></td><td>{{ v.fecha|date:"d/m/Y H:i" }}</td>
+      <td>{{ v.cliente|default:"—" }}</td><td>{{ v.get_modalidad_display }}</td><td class="text-end">{{ v.total|cop }}</td></tr>
+  {% empty %}<tr><td colspan="5" class="text-muted text-center">Aún no hay ventas.</td></tr>{% endfor %}
+</table></div>
+{% endblock %}

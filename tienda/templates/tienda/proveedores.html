@@ -1,0 +1,19 @@
+{% extends "tienda/base.html" %}{% load tienda_extras %}
+{% block content %}
+<div class="d-flex justify-content-between mb-3"><h1 class="h3 m-0">Proveedores</h1>
+  <a class="btn btn-kf" href="{% url 'proveedor_nuevo' %}">+ Nuevo proveedor</a></div>
+<div class="table-responsive card mb-4"><table class="table m-0">
+  <tr><th>Nombre</th><th>Teléfono</th><th>Ciudad</th><th class="text-end">Les debo</th></tr>
+  {% for p in lista %}<tr><td>{{ p.nombre }}</td><td>{{ p.telefono }}</td><td>{{ p.ciudad }}</td>
+    <td class="text-end {% if p.saldo %}text-danger fw-bold{% endif %}">{{ p.saldo|cop }}</td></tr>
+  {% empty %}<tr><td colspan="4" class="text-center text-muted">Sin proveedores.</td></tr>{% endfor %}
+</table></div>
+<h2 class="h5">Compras pendientes de pago</h2>
+<div class="table-responsive card"><table class="table m-0 align-middle">
+  <tr><th>Fecha</th><th>Proveedor</th><th>Mercancía</th><th class="text-end">Valor</th><th></th></tr>
+  {% for e in pendientes %}<tr><td>{{ e.fecha|date:"d/m/Y" }}</td><td>{{ e.proveedor }}</td><td>{{ e.cantidad }} x {{ e.variante }}</td>
+    <td class="text-end">{{ e.valor_compra|cop }}</td>
+    <td class="text-end"><form method="post">{% csrf_token %}<input type="hidden" name="pagar" value="{{ e.pk }}"><button class="btn btn-sm btn-kf">Marcar pagada</button></form></td></tr>
+  {% empty %}<tr><td colspan="5" class="text-center text-muted">No se debe nada.</td></tr>{% endfor %}
+</table></div>
+{% endblock %}

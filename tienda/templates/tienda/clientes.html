@@ -1,0 +1,12 @@
+{% extends "tienda/base.html" %}{% load tienda_extras %}
+{% block content %}
+<div class="d-flex justify-content-between mb-3"><h1 class="h3 m-0">Clientas</h1>
+  <a class="btn btn-kf" href="{% url 'cliente_nuevo' %}">+ Nueva clienta</a></div>
+<div class="table-responsive card"><table class="table table-hover m-0">
+  <tr><th>Nombre</th><th>Celular</th><th>Ciudad</th><th class="text-end">Saldo pendiente</th></tr>
+  {% for c in lista %}
+  <tr><td><a href="{% url 'cliente_detalle' c.pk %}">{{ c.nombre }}</a></td><td>{{ c.celular }}</td><td>{{ c.ciudad }}</td>
+      <td class="text-end {% if c.saldo %}text-danger fw-bold{% endif %}">{{ c.saldo|cop }}</td></tr>
+  {% empty %}<tr><td colspan="4" class="text-center text-muted">Sin clientas registradas.</td></tr>{% endfor %}
+</table></div>
+{% endblock %}

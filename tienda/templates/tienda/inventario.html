@@ -1,0 +1,28 @@
+{% extends "tienda/base.html" %}{% load tienda_extras %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <h1 class="h3 m-0">Inventario</h1>
+  {% if es_propietaria %}
+  <div class="d-flex flex-wrap gap-2">
+    <a class="btn btn-kf" href="{% url 'entrada_nueva' %}">+ Entrada de mercancía</a>
+    <a class="btn btn-outline-secondary" href="{% url 'prenda_nueva' %}">Nueva prenda</a>
+    <a class="btn btn-outline-secondary" href="{% url 'variante_nueva' %}">Talla/color</a>
+    <a class="btn btn-outline-secondary" href="{% url 'categoria_nueva' %}">Categoría</a>
+    <a class="btn btn-outline-warning" href="{% url 'reponer' %}">Por reponer</a>
+  </div>
+  {% endif %}
+</div>
+<form class="mb-3"><input name="q" value="{{ q }}" class="form-control" placeholder="Buscar por nombre, código, talla o color…"></form>
+<div class="table-responsive card"><table class="table table-hover m-0 align-middle">
+  <tr><th>Código</th><th>Prenda</th><th>Talla</th><th>Color</th><th class="text-end">Precio</th><th class="text-center">Stock</th><th></th></tr>
+  {% for x in variantes %}
+  <tr class="{% if x.stock == 0 %}table-danger{% elif x.por_reponer %}table-warning{% endif %}">
+    <td>{{ x.prenda.codigo }}</td><td>{{ x.prenda.nombre }}<br><small class="text-muted">{{ x.prenda.categoria }}</small></td>
+    <td>{{ x.talla }}</td><td>{{ x.color }}</td><td class="text-end">{{ x.prenda.precio_venta|cop }}</td>
+    <td class="text-center fw-bold">{{ x.stock }}</td>
+    <td class="text-end">{% if es_propietaria %}<a class="btn btn-sm btn-outline-secondary" href="{% url 'prenda_editar' x.prenda.pk %}">Prenda</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'variante_editar' x.pk %}">Mín.</a>{% endif %}</td>
+  </tr>
+  {% empty %}<tr><td colspan="7" class="text-center text-muted">No hay prendas registradas.</td></tr>{% endfor %}
+</table></div>
+{% endblock %}

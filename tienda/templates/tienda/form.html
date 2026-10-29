@@ -1,0 +1,36 @@
+{% extends "tienda/base.html" %}
+{% block content %}
+<div class="row justify-content-center"><div class="col-lg-7">
+  <h1 class="h4">{{ titulo }}</h1>
+  <form method="post" enctype="multipart/form-data" class="card card-body shadow-sm">{% csrf_token %}
+    {% for f in form %}
+      <div class="mb-3">
+        <label class="form-label" for="{{ f.id_for_label }}">{{ f.label }}</label>
+        {{ f }}
+        {% for e in f.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+      </div>
+    {% endfor %}
+    {{ form.non_field_errors }}
+    <div class="d-flex gap-2">
+      <button class="btn btn-kf">Guardar</button>
+      <a class="btn btn-outline-secondary" href="{% url volver %}">Cancelar</a>
+    </div>
+  </form>
+</div></div>
+{% if form.precio_venta %}
+<script>
+  // RF-15: precio sugerido = (costo + gastos de presentación) * (1 + % ganancia)
+  const g = n => document.getElementById('id_' + n);
+  const caja = document.createElement('div');
+  caja.className = 'alert alert-info mt-3';
+  g('precio_venta').parentElement.appendChild(caja);
+  function sugerir() {
+    const s = Math.round(((+g('costo').value || 0) + (+g('gastos_presentacion').value || 0)) * (1 + (+g('margen').value || 0) / 100));
+    caja.innerHTML = 'Precio sugerido: <b>$ ' + s.toLocaleString('es-CO') + '</b> <button type="button" class="btn btn-sm btn-kf ms-2">Usar</button>';
+    caja.querySelector('button').onclick = () => g('precio_venta').value = s;
+  }
+  ['costo', 'gastos_presentacion', 'margen'].forEach(n => g(n).addEventListener('input', sugerir));
+  sugerir();
+</script>
+{% endif %}
+{% endblock %}
