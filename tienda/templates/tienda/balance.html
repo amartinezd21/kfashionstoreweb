@@ -24,8 +24,7 @@
       <table class="table table-sm m-0">
         {% for clave, nombre in r.categorias %}<tr>
           <td>{{ nombre }}</td>
-          <td class="text-end">{% for k, val in r.por_cat.items %}{% if k == clave %}{{ val|cop }}{% endif %}{% endfor
-            %}</td>
+          <td class="text-end">{% for k, val in r.por_cat.items %}{% if k == clave %}{{ val|cop }}{% endif %}{% endfor %}</td>
         </tr>{% endfor %}
         <tr>
           <th>Total gastos</th>
