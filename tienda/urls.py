@@ -25,6 +25,7 @@ urlpatterns = [
 
     path("ventas/", v.ventas, name="ventas"),
     path("ventas/nueva/", v.venta_nueva, name="venta_nueva"),
+    path("ventas/<int:pk>/eliminar/", v.venta_eliminar, name="venta_eliminar"),
     path("ventas/<int:pk>/recibo/", v.recibo, name="recibo"),
     path("ventas/<int:pk>/abono/", v.abono_nuevo, name="abono_nuevo"),
 

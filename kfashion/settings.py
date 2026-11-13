@@ -6,6 +6,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get("SECRET_KEY", "cambia-esta-clave-en-produccion")
 DEBUG = os.environ.get("DEBUG", "1") == "1"
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+VENTA_DELETE_PASSWORD = os.environ.get("VENTA_DELETE_PASSWORD", "")
 
 INSTALLED_APPS = [
     "django.contrib.admin",

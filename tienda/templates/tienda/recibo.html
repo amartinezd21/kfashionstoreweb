@@ -3,6 +3,13 @@
 <div class="d-flex gap-2 mb-3 no-print">
   <button class="btn btn-kf" onclick="window.print()">Imprimir / guardar PDF</button>
   {% if v.modalidad == 'credito' and v.saldo > 0 %}<a class="btn btn-outline-secondary" href="{% url 'abono_nuevo' v.pk %}">Registrar abono</a>{% endif %}
+  {% if es_propietaria or es_vendedora %}
+  <form method="post" action="{% url 'venta_eliminar' v.pk %}" onsubmit="return confirm('¿Seguro que quieres eliminar esta factura? El stock será restablecido.');" class="d-flex align-items-center gap-2">
+    {% csrf_token %}
+    {% if es_vendedora %}<input class="form-control form-control-sm" style="max-width: 180px" type="password" name="password" placeholder="Clave de autorización" autocomplete="off" required>{% endif %}
+    <button class="btn btn-outline-danger" type="submit">Eliminar factura</button>
+  </form>
+  {% endif %}
   <a class="btn btn-outline-secondary" href="{% url 'ventas' %}">Volver</a>
 </div>
 <div class="card card-body mx-auto" style="max-width:640px">

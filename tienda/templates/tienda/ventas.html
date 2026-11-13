@@ -6,11 +6,20 @@
     {% else %}<a class="btn btn-outline-secondary" href="?credito=1">Solo créditos con saldo</a>{% endif %}
     <a class="btn btn-kf" href="{% url 'venta_nueva' %}">+ Nueva venta</a></div></div>
 <div class="table-responsive card"><table class="table table-hover m-0">
-  <tr><th>Recibo</th><th>Fecha</th><th>Clienta</th><th>Canal</th><th>Modalidad</th><th class="text-end">Total</th><th class="text-end">Saldo</th></tr>
+  <tr><th>Recibo</th><th>Fecha</th><th>Clienta</th><th>Canal</th><th>Modalidad</th><th class="text-end">Total</th><th class="text-end">Saldo</th><th></th></tr>
   {% for v in lista %}
   <tr><td><a href="{% url 'recibo' v.pk %}">{{ v.numero }}</a></td><td>{{ v.fecha|date:"d/m/Y H:i" }}</td><td>{{ v.cliente|default:"—" }}</td>
       <td>{{ v.get_canal_display }}</td><td>{{ v.get_modalidad_display }}</td><td class="text-end">{{ v.total|cop }}</td>
-      <td class="text-end {% if v.saldo %}text-danger{% endif %}">{{ v.saldo|cop }}</td></tr>
-  {% empty %}<tr><td colspan="7" class="text-center text-muted">No hay ventas.</td></tr>{% endfor %}
+      <td class="text-end {% if v.saldo %}text-danger{% endif %}">{{ v.saldo|cop }}</td>
+      <td class="text-end">
+        {% if es_propietaria or es_vendedora %}
+        <form method="post" action="{% url 'venta_eliminar' v.pk %}" onsubmit="return confirm('¿Seguro que quieres eliminar esta factura? El stock será restablecido.');" class="d-flex justify-content-end align-items-center gap-2">
+          {% csrf_token %}
+          {% if es_vendedora %}<input class="form-control form-control-sm" style="max-width: 150px" type="password" name="password" placeholder="Clave de autorización" autocomplete="off" required>{% endif %}
+          <button class="btn btn-sm btn-outline-danger" type="submit">Eliminar</button>
+        </form>
+        {% endif %}
+      </td></tr>
+  {% empty %}<tr><td colspan="8" class="text-center text-muted">No hay ventas.</td></tr>{% endfor %}
 </table></div>
 {% endblock %}

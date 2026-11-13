@@ -1,7 +1,9 @@
 from datetime import date
 from decimal import Decimal, InvalidOperation
 from functools import wraps
+from secrets import compare_digest
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -201,7 +203,13 @@ def ventas(request):
     if solo_credito:
         qs = qs.filter(modalidad="credito")
     lista = [v for v in qs[:200] if not solo_credito or v.saldo > 0]
-    return render(request, "tienda/ventas.html", {"lista": lista, "solo_credito": solo_credito})
+    perfil = getattr(request.user, "perfil", None)
+    return render(request, "tienda/ventas.html", {
+        "lista": lista,
+        "solo_credito": solo_credito,
+        "es_propietaria": es_propietaria(request.user),
+        "es_vendedora": bool(perfil and perfil.rol == "vendedora"),
+    })
 
 
 @login_required
@@ -253,7 +261,45 @@ def venta_nueva(request):
 @login_required
 def recibo(request, pk):
     v = get_object_or_404(Venta.objects.select_related("cliente", "vendedor"), pk=pk)
-    return render(request, "tienda/recibo.html", {"v": v, "detalles": v.detalles.select_related("variante__prenda")})
+    perfil = getattr(request.user, "perfil", None)
+    return render(request, "tienda/recibo.html", {
+        "v": v,
+        "detalles": v.detalles.select_related("variante__prenda"),
+        "es_propietaria": es_propietaria(request.user),
+        "es_vendedora": bool(perfil and perfil.rol == "vendedora"),
+    })
+
+
+@login_required
+def venta_eliminar(request, pk):
+    if request.method != "POST":
+        messages.error(request, "La factura solo se puede eliminar desde el botón de eliminar.")
+        return redirect("ventas")
+
+    venta = get_object_or_404(Venta, pk=pk)
+    if not es_propietaria(request.user):
+        perfil = getattr(request.user, "perfil", None)
+        clave_configurada = settings.VENTA_DELETE_PASSWORD
+        if not perfil or perfil.rol != "vendedora":
+            messages.error(request, "No tienes permiso para eliminar facturas.")
+            return redirect("ventas")
+        if not clave_configurada:
+            messages.error(request, "La clave de autorización para vendedoras no está configurada.")
+            return redirect("ventas")
+        if not compare_digest(request.POST.get("password", ""), clave_configurada):
+            messages.error(request, "La clave de autorización es incorrecta.")
+            return redirect("recibo", pk=pk)
+
+    numero = venta.numero
+    with transaction.atomic():
+        detalles = list(venta.detalles.all())
+        for detalle in detalles:
+            Variante.objects.filter(pk=detalle.variante_id).update(
+                stock=F("stock") + detalle.cantidad)
+        venta.delete()
+
+    messages.success(request, f"Factura {numero} eliminada y stock restablecido.")
+    return redirect("ventas")
 
 
 @login_required

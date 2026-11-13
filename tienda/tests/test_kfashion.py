@@ -1,6 +1,7 @@
 from decimal import Decimal
 import pytest
 from django.contrib.auth.models import User
+from django.test import override_settings
 from django.urls import reverse
 from tienda.models import Categoria, Prenda, Variante, Proveedor, Cliente, Venta, DetalleVenta, Abono, Perfil
 from tienda.forms import VentaForm, AbonoForm
@@ -179,6 +180,65 @@ def test_propietaria_puede_eliminar_vendedora_y_reasignar_ventas(client, usuaria
     assert not User.objects.filter(pk=usuaria_vendedora.pk).exists()
     venta.refresh_from_db()
     assert venta.vendedor == usuaria_propietaria
+
+
+@pytest.mark.django_db
+def test_propietaria_elimina_factura_y_restaura_stock(client, usuaria_propietaria, usuaria_vendedora, variante):
+    venta = Venta.objects.create(vendedor=usuaria_vendedora, total=Decimal("70000"))
+    DetalleVenta.objects.create(venta=venta, variante=variante, cantidad=2, precio_unitario=Decimal("35000"))
+    variante.stock = 8
+    variante.save(update_fields=["stock"])
+    client.force_login(usuaria_propietaria)
+
+    response = client.post(reverse("venta_eliminar", args=[venta.pk]))
+
+    assert response.status_code == 302
+    assert response.url == reverse("ventas")
+    assert not Venta.objects.filter(pk=venta.pk).exists()
+    variante.refresh_from_db()
+    assert variante.stock == 10
+
+
+@pytest.mark.django_db
+@override_settings(VENTA_DELETE_PASSWORD="clave-de-prueba")
+def test_vendedora_elimina_factura_con_clave_autorizada(client, usuaria_vendedora, variante):
+    venta = Venta.objects.create(vendedor=usuaria_vendedora, total=Decimal("35000"))
+    DetalleVenta.objects.create(venta=venta, variante=variante, cantidad=1, precio_unitario=Decimal("35000"))
+    variante.stock = 9
+    variante.save(update_fields=["stock"])
+    client.force_login(usuaria_vendedora)
+
+    response = client.post(
+        reverse("venta_eliminar", args=[venta.pk]),
+        {"password": "clave-de-prueba"},
+    )
+
+    assert response.status_code == 302
+    assert response.url == reverse("ventas")
+    assert not Venta.objects.filter(pk=venta.pk).exists()
+    variante.refresh_from_db()
+    assert variante.stock == 10
+
+
+@pytest.mark.django_db
+@override_settings(VENTA_DELETE_PASSWORD="clave-de-prueba")
+def test_vendedora_no_elimina_factura_con_clave_incorrecta(client, usuaria_vendedora, variante):
+    venta = Venta.objects.create(vendedor=usuaria_vendedora, total=Decimal("35000"))
+    DetalleVenta.objects.create(venta=venta, variante=variante, cantidad=1, precio_unitario=Decimal("35000"))
+    variante.stock = 9
+    variante.save(update_fields=["stock"])
+    client.force_login(usuaria_vendedora)
+
+    response = client.post(
+        reverse("venta_eliminar", args=[venta.pk]),
+        {"password": "incorrecta"},
+    )
+
+    assert response.status_code == 302
+    assert response.url == reverse("recibo", args=[venta.pk])
+    assert Venta.objects.filter(pk=venta.pk).exists()
+    variante.refresh_from_db()
+    assert variante.stock == 9
 
 
 # ==========================================
