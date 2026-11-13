@@ -160,6 +160,27 @@ def test_permiso_propietaria_acceso_completo(client, usuaria_propietaria):
         assert response.status_code == 200
 
 
+@pytest.mark.django_db
+def test_propietaria_puede_eliminar_vendedora_y_reasignar_ventas(client, usuaria_propietaria, usuaria_vendedora, cliente):
+    """La propietaria puede eliminar a una vendedora y reubicar sus ventas antes de borrar el usuario."""
+    venta = Venta.objects.create(
+        cliente=cliente,
+        vendedor=usuaria_vendedora,
+        canal="tienda",
+        modalidad="contado",
+        total=Decimal("50000"),
+    )
+    client.force_login(usuaria_propietaria)
+
+    response = client.post(reverse("usuarios"), {"eliminar": usuaria_vendedora.pk})
+
+    assert response.status_code == 302
+    assert response.url == reverse("usuarios")
+    assert not User.objects.filter(pk=usuaria_vendedora.pk).exists()
+    venta.refresh_from_db()
+    assert venta.vendedor == usuaria_propietaria
+
+
 # ==========================================
 # 4. PRUEBAS DE FLUJOS CRÍTICOS
 # ==========================================

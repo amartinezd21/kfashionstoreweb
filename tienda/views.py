@@ -96,6 +96,15 @@ def usuarios(request):
             u.is_active = not u.is_active
             u.save(update_fields=["is_active"])
             return redirect("usuarios")
+        if "eliminar" in request.POST:
+            u = get_object_or_404(User, pk=request.POST["eliminar"], perfil__rol="vendedora")
+            if u == request.user:
+                messages.error(request, "No puedes eliminar tu propia cuenta de propietaria.")
+            else:
+                Venta.objects.filter(vendedor=u).update(vendedor=request.user)
+                u.delete()
+                messages.success(request, "Vendedora eliminada correctamente.")
+            return redirect("usuarios")
         if form.is_valid():
             form.save()
             messages.success(request, "Vendedora creada. Deberá cambiar la contraseña al entrar.")
