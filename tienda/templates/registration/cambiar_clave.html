@@ -1,15 +1,119 @@
 {% extends "tienda/base.html" %}
 {% block content %}
-<div class="row justify-content-center"><div class="col-md-6 col-lg-5">
-  <h1 class="h4">Cambiar contraseña</h1>
-  <form method="post" class="card card-body shadow-sm">{% csrf_token %}
+
+<style>
+  /* Estilos exclusivos de esta página: todo empieza con "cc-" para no afectar al resto del sitio */
+  .cc-wrap {
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 8px 0 40px;
+    font-family: 'Jost', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    color: #3a1a2b;
+  }
+
+  .cc-crumb {
+    font-size: 13px;
+    color: #8c7381;
+    margin-bottom: 18px;
+  }
+
+  .cc-title {
+    font-family: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+    font-weight: 500;
+    font-size: 44px;
+    line-height: 1.1;
+    color: #2b1020;
+    margin: 0 0 6px;
+  }
+
+  .cc-sub {
+    font-size: 15px;
+    color: #8c7381;
+    margin: 0 0 24px;
+  }
+
+  .cc-card {
+    background: #ffffff;
+    border: 1px solid #f6e3d8;
+    border-radius: 18px;
+    padding: 28px;
+  }
+
+  .cc-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #5b2340;
+    margin-bottom: 6px;
+  }
+
+  .cc-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px 14px;
+    font-size: 16px;
+    font-family: inherit;
+    color: #2b1020;
+    background: #fffaf6;
+    border: 1px solid #ecd3c4;
+    border-radius: 12px;
+    outline: none;
+  }
+
+  .cc-input:focus {
+    border-color: #6a1540;
+    box-shadow: 0 0 0 3px rgba(106, 21, 64, 0.15);
+  }
+
+  .cc-field {
+    margin-bottom: 18px;
+  }
+
+  .cc-error {
+    margin-top: 6px;
+    font-size: 13px;
+    color: #b3261e;
+  }
+
+  .cc-btn {
+    display: inline-block;
+    width: 100%;
+    padding: 13px 22px;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 500;
+    color: #ffffff;
+    background: #6a1540;
+    border: 0;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+
+  .cc-btn:hover {
+    background: #561033;
+  }
+
+  .cc-btn:focus-visible {
+    outline: 3px solid #fcb88f;
+    outline-offset: 2px;
+  }
+</style>
+
+<div class="cc-wrap">
+  <div class="cc-crumb">Mi boutique / Cambiar contraseña</div>
+  <h1 class="cc-title">Cambiar contraseña</h1>
+  <p class="cc-sub">Elige una contraseña nueva para tu cuenta.</p>
+
+  <form method="post" class="cc-card">{% csrf_token %}
     {% for f in form %}
-      <label class="form-label">{{ f.label }}</label>
-      <input type="password" name="{{ f.html_name }}" class="form-control mb-1" required>
-      {% for e in f.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
-      <div class="mb-2"></div>
+    <div class="cc-field">
+      <label class="cc-label" for="{{ f.id_for_label }}">{{ f.label }}</label>
+      <input type="password" id="{{ f.id_for_label }}" name="{{ f.html_name }}" class="cc-input" required>
+      {% for e in f.errors %}<div class="cc-error">{{ e }}</div>{% endfor %}
+    </div>
     {% endfor %}
-    <button class="btn btn-kf">Guardar</button>
+    <button type="submit" class="cc-btn">Guardar</button>
   </form>
-</div></div>
+</div>
+
 {% endblock %}
