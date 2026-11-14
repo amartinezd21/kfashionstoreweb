@@ -24,7 +24,8 @@
       <table class="table table-sm m-0">
         {% for clave, nombre in r.categorias %}<tr>
           <td>{{ nombre }}</td>
-          <td class="text-end">{% for k, val in r.por_cat.items %}{% if k == clave %}{{ val|cop }}{% endif %}{% endfor %}</td>
+          <td class="text-end">{% for k, val in r.por_cat.items %}{% if k == clave %}{{ val|cop }}{% endif %}{% endfor
+            %}</td>
         </tr>{% endfor %}
         <tr>
           <th>Total gastos</th>
@@ -51,7 +52,7 @@
   </div>
 </div>
 <p class="mt-3">
-  {% if r.por_cat.salario %}✅ En este periodo se registró el salario de la propietaria.{% else %}⚠ No hay salario
+  {% if r.por_cat.salario %}En este periodo se registró el salario de la propietaria.{% else %}⚠ No hay salario
   registrado en este periodo.{% endif %}
   {% if r.por_cat.arriendo and r.por_cat.servicios %}Arriendo y servicios cubiertos.{% else %}Falta registrar arriendo o
   servicios.{% endif %}
