@@ -1,7 +1,6 @@
 from decimal import Decimal
 import pytest
 from django.contrib.auth.models import User
-from django.test import override_settings
 from django.urls import reverse
 from tienda.models import Categoria, Prenda, Variante, Proveedor, Cliente, Venta, DetalleVenta, Abono, Perfil
 from tienda.forms import VentaForm, AbonoForm
@@ -200,8 +199,9 @@ def test_propietaria_elimina_factura_y_restaura_stock(client, usuaria_propietari
 
 
 @pytest.mark.django_db
-@override_settings(VENTA_DELETE_PASSWORD="clave-de-prueba")
-def test_vendedora_elimina_factura_con_clave_autorizada(client, usuaria_vendedora, variante):
+def test_vendedora_elimina_factura_con_su_contrasena(client, usuaria_vendedora, variante):
+    usuaria_vendedora.set_password("clave-propia")
+    usuaria_vendedora.save()
     venta = Venta.objects.create(vendedor=usuaria_vendedora, total=Decimal("35000"))
     DetalleVenta.objects.create(venta=venta, variante=variante, cantidad=1, precio_unitario=Decimal("35000"))
     variante.stock = 9
@@ -210,7 +210,7 @@ def test_vendedora_elimina_factura_con_clave_autorizada(client, usuaria_vendedor
 
     response = client.post(
         reverse("venta_eliminar", args=[venta.pk]),
-        {"password": "clave-de-prueba"},
+        {"password": "clave-propia"},
     )
 
     assert response.status_code == 302
@@ -221,8 +221,9 @@ def test_vendedora_elimina_factura_con_clave_autorizada(client, usuaria_vendedor
 
 
 @pytest.mark.django_db
-@override_settings(VENTA_DELETE_PASSWORD="clave-de-prueba")
-def test_vendedora_no_elimina_factura_con_clave_incorrecta(client, usuaria_vendedora, variante):
+def test_vendedora_no_elimina_factura_con_contrasena_incorrecta(client, usuaria_vendedora, variante):
+    usuaria_vendedora.set_password("clave-propia")
+    usuaria_vendedora.save()
     venta = Venta.objects.create(vendedor=usuaria_vendedora, total=Decimal("35000"))
     DetalleVenta.objects.create(venta=venta, variante=variante, cantidad=1, precio_unitario=Decimal("35000"))
     variante.stock = 9
@@ -239,6 +240,18 @@ def test_vendedora_no_elimina_factura_con_clave_incorrecta(client, usuaria_vende
     assert Venta.objects.filter(pk=venta.pk).exists()
     variante.refresh_from_db()
     assert variante.stock == 9
+
+
+@pytest.mark.django_db
+def test_vendedora_no_elimina_factura_sin_contrasena(client, usuaria_vendedora, variante):
+    venta = Venta.objects.create(vendedor=usuaria_vendedora, total=Decimal("35000"))
+    client.force_login(usuaria_vendedora)
+
+    response = client.post(reverse("venta_eliminar", args=[venta.pk]), {"password": ""})
+
+    assert response.status_code == 302
+    assert response.url == reverse("recibo", args=[venta.pk])
+    assert Venta.objects.filter(pk=venta.pk).exists()
 
 
 # ==========================================

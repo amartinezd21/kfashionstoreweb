@@ -15,7 +15,7 @@
         {% if es_propietaria or es_vendedora %}
         <form method="post" action="{% url 'venta_eliminar' v.pk %}" onsubmit="return confirm('¿Seguro que quieres eliminar esta factura? El stock será restablecido.');" class="d-flex justify-content-end align-items-center gap-2">
           {% csrf_token %}
-          {% if es_vendedora %}<input class="form-control form-control-sm" style="max-width: 150px" type="password" name="password" placeholder="Clave de autorización" autocomplete="off" required>{% endif %}
+          {% if es_vendedora %}<input class="form-control form-control-sm" style="max-width: 150px" type="password" name="password" placeholder="Tu contraseña" autocomplete="current-password" required>{% endif %}
           <button class="btn btn-sm btn-outline-danger" type="submit">Eliminar</button>
         </form>
         {% endif %}

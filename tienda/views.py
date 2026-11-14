@@ -1,9 +1,7 @@
 from datetime import date
 from decimal import Decimal, InvalidOperation
 from functools import wraps
-from secrets import compare_digest
 
-from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -279,15 +277,11 @@ def venta_eliminar(request, pk):
     venta = get_object_or_404(Venta, pk=pk)
     if not es_propietaria(request.user):
         perfil = getattr(request.user, "perfil", None)
-        clave_configurada = settings.VENTA_DELETE_PASSWORD
         if not perfil or perfil.rol != "vendedora":
             messages.error(request, "No tienes permiso para eliminar facturas.")
             return redirect("ventas")
-        if not clave_configurada:
-            messages.error(request, "La clave de autorización para vendedoras no está configurada.")
-            return redirect("ventas")
-        if not compare_digest(request.POST.get("password", ""), clave_configurada):
-            messages.error(request, "La clave de autorización es incorrecta.")
+        if not request.user.check_password(request.POST.get("password", "")):
+            messages.error(request, "La contraseña de tu cuenta es incorrecta.")
             return redirect("recibo", pk=pk)
 
     numero = venta.numero
