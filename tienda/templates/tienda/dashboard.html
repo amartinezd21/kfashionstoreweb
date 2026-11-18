@@ -1,30 +1,193 @@
 {% extends "tienda/base.html" %}{% load tienda_extras %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h1 class="h3 m-0">Inicio</h1>
-  <a class="btn btn-kf" href="{% url 'venta_nueva' %}">+ Nueva venta</a>
-</div>
-<div class="row g-3 mb-4">
-  {% if r %}
-  <div class="col-6 col-lg-3"><div class="card card-body"><small class="text-muted">Vendido este mes</small><div class="card-num">{{ r.total_vendido|cop }}</div></div></div>
-  <div class="col-6 col-lg-3"><div class="card card-body"><small class="text-muted">Gastos este mes</small><div class="card-num">{{ r.total_gastos|cop }}</div></div></div>
-  <div class="col-6 col-lg-3"><div class="card card-body"><small class="text-muted">Ganancia (cobrado − gastos)</small><div class="card-num {% if r.ganancia < 0 %}text-danger{% else %}text-success{% endif %}">{{ r.ganancia|cop }}</div></div></div>
-  <div class="col-6 col-lg-3"><div class="card card-body"><small class="text-muted">Clientas me deben</small><div class="card-num">{{ r.por_cobrar|cop }}</div></div></div>
-  {% endif %}
-  <div class="col-12">
-    <a href="{% if es_propietaria %}{% url 'reponer' %}{% else %}{% url 'inventario' %}{% endif %}" class="text-decoration-none">
-      <div class="alert {% if alertas %}alert-warning{% else %}alert-success{% endif %} m-0">
-        {% if alertas %}⚠ {{ alertas }} prenda(s) por agotarse. Toca para ver.{% else %}Todo el inventario está sobre el mínimo.{% endif %}
-      </div>
-    </a>
+<style>
+  body, body.bg-light { background-color: #f7eed9 !important; color: #5a0f2e; font-family: 'Jost', sans-serif; }
+  .kf-inicio { --vino: #5a0f2e; --crema: #f7eed9; --durazno: #fdbda0; --suave: rgba(90, 15, 46, 0.7); color: var(--vino); font-variant-numeric: lining-nums; }
+  .kf-inicio a { color: var(--vino); }
+
+  /* Barra de contexto */
+  .kf-contexto { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--suave); margin-bottom: 23px; }
+  .kf-contexto-derecha { display: flex; align-items: center; gap: 15px; }
+  .kf-avatar { width: 28px; height: 28px; border-radius: 50%; background: rgba(253, 189, 160, 0.5); color: var(--vino);
+               display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; }
+
+  /* Encabezado */
+  .kf-encabezado { background: #feb99a; display: flex; justify-content: space-between; align-items: center; gap: 16px;
+                   flex-wrap: wrap; padding: 6px 0 6px 0; margin-bottom: 20px; }
+  .kf-titulo { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 500; font-size: 42px; line-height: 1.25; margin: 0; }
+  .kf-subtitulo { font-size: 13px; color: var(--suave); margin: 5px 0 0; }
+  .kf-btn-venta { background: var(--vino); color: var(--crema) !important; border: 1px solid var(--durazno); border-radius: 100px;
+                  height: 42px; padding: 0 20px; display: inline-flex; align-items: center; gap: 8px; font-size: 14px;
+                  font-weight: 500; text-decoration: none; white-space: nowrap; }
+  .kf-btn-venta:hover { background: #460b24; }
+
+  /* Balance del mes */
+  .kf-balance { background: var(--vino); color: var(--crema); border-radius: 16px; padding: 26px; display: flex;
+                align-items: center; gap: 36px; flex-wrap: wrap; margin-bottom: 20px; }
+  .kf-balance-mes { flex: 1 1 320px; display: flex; flex-direction: column; gap: 8px; }
+  .kf-balance-mes small { font-size: 13px; }
+  .kf-balance-total { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 500; font-size: 36px; line-height: 1.25; }
+  .kf-balance-mes p { font-size: 14px; margin: 0; }
+  .kf-separador-v { width: 1px; height: 90px; background: rgba(247, 238, 217, 0.19); }
+  .kf-indicadores { flex: 1 1 300px; display: flex; gap: 24px; }
+  .kf-indicador { flex: 1; display: flex; flex-direction: column; gap: 9px; }
+  .kf-indicador small { font-size: 11px; }
+  .kf-indicador strong { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 600; font-size: 28px; line-height: 1.25; white-space: nowrap; }
+
+  /* Tarjetas */
+  .kf-tarjeta { background: var(--crema); border: 1.5px solid var(--durazno); border-radius: 16px; padding: 22px; height: 100%;
+                display: flex; flex-direction: column; gap: 3px; }
+  .kf-tarjeta h2 { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 600; font-size: 22px; line-height: 1.25; margin: 0 0 8px; }
+  .kf-fila { padding: 9px 0; display: flex; flex-direction: column; gap: 6px; }
+  .kf-fila-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; font-size: 13px; }
+  .kf-fila-top b { font-weight: 500; }
+  .kf-fila small { font-size: 11px; color: var(--suave); }
+  .kf-etiqueta { background: rgba(253, 189, 160, 0.25); border-radius: 100px; padding: 5px 9px; font-size: 11px; font-weight: 500; white-space: nowrap; }
+  .kf-variante { display: flex; align-items: center; gap: 9px; font-size: 12px; }
+  .kf-punto { width: 13px; height: 13px; border-radius: 50%; display: inline-block; margin-right: 7px; vertical-align: -2px;
+              border: 1px solid rgba(90, 15, 46, 0.25); }
+  .kf-talla { background: rgba(253, 189, 160, 0.25); border-radius: 5px; padding: 3px 7px; font-size: 10px; font-weight: 500; }
+  .kf-vacio { font-size: 12px; color: var(--suave); padding: 9px 0; }
+  .kf-enlace { font-size: 12px; text-decoration: none; margin-top: auto; padding-top: 8px; }
+  .kf-enlace:hover { text-decoration: underline; }
+
+  /* Gráfica de la semana */
+  .kf-semana { gap: 12px; margin-top: 20px; }
+  .kf-semana-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
+  .kf-semana-top h2 { margin: 0; }
+  .kf-grafica { display: flex; align-items: flex-end; gap: 20px; height: 124px; }
+  .kf-escala { width: 60px; height: 124px; display: flex; flex-direction: column; justify-content: space-between;
+               padding: 24px 0 12px; font-size: 10px; color: var(--suave); white-space: nowrap; flex-shrink: 0; }
+  .kf-dia { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 6px;
+            height: 124px; font-size: 10px; color: var(--suave); white-space: nowrap; }
+  .kf-barra { width: 100%; max-width: 64px; background: var(--durazno); border-radius: 5px 5px 0 0; }
+  .kf-barra.hoy { background: var(--vino); }
+
+  @media (max-width: 767.98px) {
+    .kf-separador-v { display: none; }
+    .kf-titulo { font-size: 34px; }
+    .kf-grafica { gap: 6px; }
+    .kf-escala { display: none; }
+    .kf-dia > span:first-child { display: none; }
+  }
+</style>
+
+<div class="kf-inicio">
+  <div class="kf-contexto">
+    <span>Mi boutique / Inicio</span>
+    <span class="kf-contexto-derecha">
+      <span>{{ hoy|date:"j \d\e F \d\e Y"|lower }}</span>
+      <span class="kf-avatar">{{ user.first_name|default:user.username|first|upper }}</span>
+    </span>
   </div>
+
+  <div class="kf-encabezado">
+    <div>
+      <h1 class="kf-titulo">{{ saludo }}</h1>
+      <p class="kf-subtitulo">Una mirada tranquila a todo lo que pasa en tu tienda.</p>
+    </div>
+    <a class="kf-btn-venta" href="{% url 'venta_nueva' %}">+ Nueva venta</a>
+  </div>
+
+  <div class="kf-balance">
+    {% if r %}
+    <div class="kf-balance-mes">
+      <small>{{ hoy|date:"F"|capfirst }}, hasta hoy:</small>
+      <span class="kf-balance-total">{{ r.total_vendido|cop }} vendidos.</span>
+      <p>Después de gastos te quedan {{ r.ganancia|cop }}</p>
+    </div>
+    <div class="kf-separador-v"></div>
+    {% endif %}
+    <div class="kf-indicadores">
+      <div class="kf-indicador"><small>Ventas hoy</small><strong>{{ ventas_hoy }}</strong></div>
+      {% if r %}<div class="kf-indicador"><small>Te deben</small><strong>{{ r.por_cobrar|cop }}</strong></div>{% endif %}
+      <div class="kf-indicador"><small>Prendas en tienda</small><strong>{{ prendas_tienda }}</strong></div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-lg-4">
+      <div class="kf-tarjeta">
+        <h2>Por reponer</h2>
+        {% for v in reponer %}
+        <div class="kf-fila">
+          <div class="kf-fila-top">
+            <b>{{ v.prenda.nombre }}</b>
+            <span class="kf-etiqueta">{% if v.stock == 0 %}Agotada{% elif v.stock == 1 %}Queda 1{% else %}Quedan {{ v.stock }}{% endif %}</span>
+          </div>
+          <div class="kf-variante">
+            <span><span class="kf-punto" style="background: {{ v.color|color_hex }}"></span>{{ v.color }}</span>
+            <span class="kf-talla">{{ v.talla }}</span>
+          </div>
+        </div>
+        {% empty %}
+        <div class="kf-vacio">Todo el inventario está sobre el mínimo.</div>
+        {% endfor %}
+        {% if alertas > 3 %}<small class="kf-vacio">Y {{ alertas|add:"-3" }} más por reponer.</small>{% endif %}
+        <a class="kf-enlace" href="{% if es_propietaria %}{% url 'reponer' %}{% else %}{% url 'inventario' %}{% endif %}">Ir a Inventario →</a>
+      </div>
+    </div>
+
+    {% if r %}
+    <div class="col-lg-4">
+      <div class="kf-tarjeta">
+        <h2>Cobros pendientes</h2>
+        {% for v in cobros %}
+        <div class="kf-fila">
+          <div class="kf-fila-top"><b>{{ v.cliente|default:"Sin clienta" }}</b><span>{{ v.saldo|cop }}</span></div>
+          <small>
+            {% if not v.fecha_limite %}Sin fecha límite
+            {% elif v.fecha_limite < hoy %}Venció el {{ v.fecha_limite|date:"j \d\e F"|lower }}
+            {% else %}Hasta el {{ v.fecha_limite|date:"j \d\e F"|lower }}{% endif %}
+          </small>
+        </div>
+        {% empty %}
+        <div class="kf-vacio">Nadie te debe. ¡Todo al día!</div>
+        {% endfor %}
+        <a class="kf-enlace" href="{% url 'ventas' %}?credito=1">Ver cuentas por cobrar →</a>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="col-lg-4">
+      <div class="kf-tarjeta">
+        <h2>Últimas ventas</h2>
+        {% for v in ultimas %}
+        <div class="kf-fila">
+          <div class="kf-fila-top"><b>{{ v.cliente|default:"Mostrador" }}</b><span>{{ v.total|cop }}</span></div>
+          <small>
+            <a href="{% url 'recibo' v.pk %}" class="text-reset">Recibo {{ v.numero }}</a> ·
+            {% if v.fecha|date:"Y-m-d" == hoy|date:"Y-m-d" %}Hoy{% else %}{{ v.fecha|date:"j \d\e F"|lower }}{% endif %}, {{ v.fecha|date:"g:i a" }}
+          </small>
+        </div>
+        {% empty %}
+        <div class="kf-vacio">Aún no hay ventas.</div>
+        {% endfor %}
+        <a class="kf-enlace" href="{% url 'ventas' %}">Ver histórico de ventas →</a>
+      </div>
+    </div>
+  </div>
+
+  {% if semana %}
+  <div class="kf-tarjeta kf-semana">
+    <div class="kf-semana-top">
+      <div>
+        <h2>Así se movió tu semana</h2>
+        <small style="font-size:11px;color:var(--suave)">Ventas de los últimos 7 días · {{ semana.0.dia|date:"j" }} al {{ hoy|date:"j \d\e F"|lower }}</small>
+      </div>
+      <span class="kf-etiqueta">{{ total_semana|cop }} en la semana</span>
+    </div>
+    <div class="kf-grafica">
+      <div class="kf-escala"><span>{{ escala.0|cop }}</span><span>{{ escala.1|cop }}</span><span>$ 0</span></div>
+      {% for d in semana %}
+      <div class="kf-dia">
+        <span>{{ d.total|cop }}</span>
+        <div class="kf-barra{% if d.es_hoy %} hoy{% endif %}" style="height: {{ d.alto }}px"></div>
+        <span>{{ d.dia|date:"j M"|lower }}.</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
 </div>
-<h2 class="h5">Últimas ventas</h2>
-<div class="table-responsive card"><table class="table m-0">
-  <tr><th>Recibo</th><th>Fecha</th><th>Clienta</th><th>Modalidad</th><th class="text-end">Total</th></tr>
-  {% for v in ultimas %}
-  <tr><td><a href="{% url 'recibo' v.pk %}">{{ v.numero }}</a></td><td>{{ v.fecha|date:"d/m/Y H:i" }}</td>
-      <td>{{ v.cliente|default:"—" }}</td><td>{{ v.get_modalidad_display }}</td><td class="text-end">{{ v.total|cop }}</td></tr>
-  {% empty %}<tr><td colspan="5" class="text-muted text-center">Aún no hay ventas.</td></tr>{% endfor %}
-</table></div>
 {% endblock %}

@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime, time, timedelta
 from decimal import Decimal, InvalidOperation
 from functools import wraps
 
@@ -108,13 +108,38 @@ def usuarios(request):
 @login_required
 def dashboard(request):
     hoy = timezone.localdate()
+    ahora = timezone.localtime()
+    hace_6_dias = hoy - timedelta(days=6)
+    desde_semana = timezone.make_aware(datetime.combine(hace_6_dias, time.min))
+    ventas_semana = list(Venta.objects.filter(fecha__gte=desde_semana).only("fecha", "total"))
+    por_reponer = (Variante.objects.select_related("prenda")
+                   .filter(stock__lte=F("minimo"), prenda__activa=True).order_by("stock"))
     ctx = {
-        "alertas": Variante.objects.filter(stock__lte=F("minimo"), prenda__activa=True).count(),
-        "ultimas": Venta.objects.select_related("cliente")[:6],
+        "alertas": por_reponer.count(),
+        "reponer": por_reponer[:3],
+        "ultimas": Venta.objects.select_related("cliente")[:3],
         "hoy": hoy,
+        "saludo": "Buenos días" if ahora.hour < 12 else "Buenas tardes" if ahora.hour < 19 else "Buenas noches",
+        "ventas_hoy": sum(1 for v in ventas_semana if timezone.localtime(v.fecha).date() == hoy),
+        "prendas_tienda": Variante.objects.filter(prenda__activa=True).aggregate(t=Sum("stock"))["t"] or 0,
     }
     if es_propietaria(request.user):
         ctx["r"] = resumen(hoy.replace(day=1), hoy)
+        # Créditos con saldo pendiente: primero los que vencen antes
+        creditos = [v for v in Venta.objects.select_related("cliente").filter(modalidad="credito") if v.saldo > 0]
+        creditos.sort(key=lambda v: v.fecha_limite or date.max)
+        ctx["cobros"] = creditos[:3]
+        # Ventas de los últimos 7 días para la gráfica
+        totales = {hace_6_dias + timedelta(days=i): CERO for i in range(7)}
+        for v in ventas_semana:
+            dia = timezone.localtime(v.fecha).date()
+            if dia in totales:
+                totales[dia] += v.total
+        maximo = max(totales.values()) or 1
+        ctx["semana"] = [{"dia": d, "total": t, "alto": max(3, round(t / maximo * 80)), "es_hoy": d == hoy}
+                         for d, t in totales.items()]
+        ctx["total_semana"] = sum(totales.values(), CERO)
+        ctx["escala"] = (maximo if maximo != 1 else CERO, maximo / 2 if maximo != 1 else CERO)
     return render(request, "tienda/dashboard.html", ctx)
 
 
