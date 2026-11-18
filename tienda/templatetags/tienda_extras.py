@@ -35,3 +35,20 @@ def total_personal(gastos):
     except Exception:
         return 0
 
+
+@register.filter
+def total_deuda_proveedores(proveedores):
+    try:
+        return sum(p.saldo for p in proveedores)
+    except Exception:
+        return 0
+
+
+@register.filter
+def con_saldo_count(proveedores):
+    try:
+        return sum(1 for p in proveedores if p.saldo > 0)
+    except Exception:
+        return 0
+
+
