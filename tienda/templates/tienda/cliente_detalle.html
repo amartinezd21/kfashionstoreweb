@@ -1,12 +1,83 @@
 {% extends "tienda/base.html" %}{% load tienda_extras %}
 {% block content %}
-<h1 class="h3">{{ c.nombre }}</h1>
-<p class="text-muted">{{ c.celular }} · {{ c.ciudad }} · Saldo pendiente: <b class="text-danger">{{ c.saldo|cop }}</b></p>
-<div class="table-responsive card"><table class="table m-0">
-  <tr><th>Recibo</th><th>Fecha</th><th>Modalidad</th><th>Límite</th><th class="text-end">Total</th><th class="text-end">Saldo</th></tr>
-  {% for v in ventas %}
-  <tr><td><a href="{% url 'recibo' v.pk %}">{{ v.numero }}</a></td><td>{{ v.fecha|date:"d/m/Y" }}</td><td>{{ v.get_modalidad_display }}</td>
-      <td>{{ v.fecha_limite|date:"d/m/Y"|default:"—" }}</td><td class="text-end">{{ v.total|cop }}</td><td class="text-end">{{ v.saldo|cop }}</td></tr>
-  {% empty %}<tr><td colspan="6" class="text-center text-muted">Sin compras.</td></tr>{% endfor %}
-</table></div>
+{% include "tienda/_estilos.html" %}
+<style>
+  .kfp-perfil { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+  .kfp-iniciales { width: 42px; height: 42px; border-radius: 50%; background: rgba(253, 189, 160, 0.6); display: inline-flex;
+                   align-items: center; justify-content: center; font-family: 'Cormorant Garamond', Georgia, serif; font-size: 20px; flex-shrink: 0; }
+  .kfp-perfil h2 { font-size: 28px !important; }
+  .kfp-cifras { display: flex; justify-content: space-between; gap: 16px; margin: 16px 0; }
+  .kfp-cifras small { font-size: 11px; color: var(--suave); display: block; }
+  .kfp-cifras .kfp-num { font-size: 28px; }
+  .kfp-deuda-fila { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 13px; }
+</style>
+
+<div class="kfp">
+  {% url 'clientes' as url_volver %}
+  {% include "tienda/_encabezado.html" with miga="Clientas" titulo=c.nombre subtitulo="Su historia con la tienda, compra por compra." boton_url=url_volver boton_texto="← Volver a clientas" boton_claro=True %}
+
+  <div class="row g-3">
+    <div class="col-lg-5">
+      <div class="kfp-tarjeta h-100">
+        <div class="kfp-perfil">
+          <span class="kfp-iniciales">{{ iniciales }}</span>
+          <div>
+            <h2>{{ c.nombre }}</h2>
+            <small class="kfp-suave">{{ c.ciudad|default:"Sin ciudad" }}</small>
+          </div>
+        </div>
+        <div class="mb-2"><a class="kfp-btn kfp-btn-durazno no-print" href="{% url 'cliente_editar' c.pk %}">Editar datos</a></div>
+        <div style="font-size:13px">
+          {% if c.celular %}
+          📞 {{ c.celular }}
+          {% if whatsapp %}· <a class="kfp-link" href="https://wa.me/{{ whatsapp }}" target="_blank" rel="noopener">WhatsApp ↗</a>{% endif %}
+          {% else %}<span class="kfp-suave">Sin celular registrado</span>{% endif %}
+        </div>
+        <div class="kfp-cifras">
+          <div><small>Total comprado</small><span class="kfp-num">{{ total_comprado|cop }}</span></div>
+          <div class="text-end"><small>Compras</small><span class="kfp-num">{{ ventas|length }}</span></div>
+        </div>
+        <div class="kfp-suave-caja">
+          {% if creditos_pendientes %}
+          <div class="kfp-deuda-fila mb-2"><b>Debe {{ c.saldo|cop }}</b><a class="kfp-link" href="{% url 'ventas' %}?credito=1">Ver cuentas por cobrar →</a></div>
+          {% for v in creditos_pendientes %}
+          <div class="kfp-deuda-fila mt-2">
+            <span>{{ v.numero }} · debe {{ v.saldo|cop }}{% if v.fecha_limite %} · hasta el {{ v.fecha_limite|date:"j M"|lower }}{% endif %}</span>
+            <a class="kfp-btn kfp-btn-durazno no-print" href="{% url 'abono_nuevo' v.pk %}">Registrar abono</a>
+          </div>
+          {% endfor %}
+          {% else %}
+          <div class="kfp-deuda-fila"><span>✓ Está al día, no debe nada.</span></div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-7">
+      <div class="kfp-tarjeta h-100">
+        <div class="kfp-tarjeta-top"><h2>Historial de compras</h2></div>
+        <div class="kfp-tabla-caja table-responsive">
+          <table class="kfp-tabla">
+            <thead><tr><th>Recibo</th><th>Fecha</th><th>Prendas</th><th>Pago</th><th class="derecha">Total</th><th class="no-print"></th></tr></thead>
+            <tbody>
+            {% for v in ventas %}
+            <tr>
+              <td>{{ v.numero }}</td>
+              <td style="white-space:nowrap">{{ v.fecha|date:"d M y"|lower }}</td>
+              <td>{{ v.num_prendas }}</td>
+              <td>{{ v.get_modalidad_display }}{% if v.modalidad == "credito" and v.saldo > 0 %}<br><small>Debe {{ v.saldo|cop }}</small>{% endif %}</td>
+              <td class="derecha" style="white-space:nowrap">{{ v.total|cop }}</td>
+              <td class="no-print"><a class="kfp-link" href="{% url 'recibo' v.pk %}">Ver →</a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="vacio">Todavía no tiene compras.</td></tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% if ventas %}<p class="kfp-nota">Última compra: recibo {{ ventas.0.numero }} · {{ ventas.0.get_modalidad_display }}</p>{% endif %}
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

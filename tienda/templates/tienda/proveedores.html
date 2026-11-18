@@ -392,7 +392,7 @@
             <tbody>
               {% for p in lista %}
               <tr>
-                <td><strong>{{ p.nombre }}</strong></td>
+                <td><strong>{{ p.nombre }}</strong> <a class="ms-1 small" style="color:#8a5a4c" href="{% url 'proveedor_editar' p.pk %}">Editar</a></td>
                 <td>{{ p.telefono|default:p.ciudad|default:"—" }}</td>
                 <td>
                   {% if p.saldo > 0 %}
@@ -446,6 +446,7 @@
                     <input type="hidden" name="pagar" value="{{ e.pk }}">
                     <button type="submit" class="btn-kf-toggle">Marcar pagada</button>
                   </form>
+                  <a class="ms-2 small" style="color:#a4161a" href="{% url 'entrada_eliminar' e.pk %}">Eliminar</a>
                 </td>
               </tr>
               {% empty %}

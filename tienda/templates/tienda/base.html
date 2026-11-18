@@ -186,19 +186,19 @@
           href="{% url 'dashboard' %}">Inicio</a>
         <a class="kf-opcion{% if request.resolver_match.url_name == 'venta_nueva' %} activa{% endif %}"
           href="{% url 'venta_nueva' %}">Nueva venta</a>
-        <a class="kf-opcion{% if request.resolver_match.url_name == 'ventas' and not request.GET.credito %} activa{% endif %}"
+        <a class="kf-opcion{% if request.resolver_match.url_name in 'ventas,recibo,venta_anular' and not request.GET.credito %} activa{% endif %}"
           href="{% url 'ventas' %}">Histórico de ventas</a>
-        <a class="kf-opcion{% if request.resolver_match.url_name == 'inventario' %} activa{% endif %}"
+        <a class="kf-opcion{% if request.resolver_match.url_name in 'inventario,prenda_nueva,prenda_editar,prenda_eliminar,variante_nueva,variante_editar,variante_eliminar,categorias,categoria_nueva,categoria_editar,categoria_eliminar,entrada_nueva,reponer' %} activa{% endif %}"
           href="{% url 'inventario' %}">Inventario</a>
-        <a class="kf-opcion{% if request.resolver_match.url_name == 'clientes' %} activa{% endif %}"
+        <a class="kf-opcion{% if request.resolver_match.url_name in 'clientes,cliente_nuevo,cliente_detalle,cliente_editar,cliente_eliminar' %} activa{% endif %}"
           href="{% url 'clientes' %}">Clientas</a>
         <div class="kf-grupo">Dinero</div>
-        <a class="kf-opcion{% if request.resolver_match.url_name == 'ventas' and request.GET.credito %} activa{% endif %}"
+        <a class="kf-opcion{% if request.resolver_match.url_name == 'ventas' and request.GET.credito or request.resolver_match.url_name in 'abono_nuevo,abono_eliminar' %} activa{% endif %}"
           href="{% url 'ventas' %}?credito=1">Cuentas por cobrar</a>
         {% if es_propietaria %}
-        <a class="kf-opcion{% if request.resolver_match.url_name == 'proveedores' %} activa{% endif %}"
+        <a class="kf-opcion{% if request.resolver_match.url_name in 'proveedores,proveedor_nuevo,proveedor_editar,proveedor_eliminar,entrada_eliminar' %} activa{% endif %}"
           href="{% url 'proveedores' %}">Proveedores</a>
-        <a class="kf-opcion{% if request.resolver_match.url_name == 'gastos' %} activa{% endif %}"
+        <a class="kf-opcion{% if request.resolver_match.url_name in 'gastos,gasto_nuevo,gasto_editar,gasto_eliminar' %} activa{% endif %}"
           href="{% url 'gastos' %}">Gastos</a>
         <div class="kf-grupo">Análisis</div>
         <a class="kf-opcion{% if request.resolver_match.url_name == 'reporte' %} activa{% endif %}"

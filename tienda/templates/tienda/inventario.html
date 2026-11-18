@@ -527,6 +527,7 @@
             <td class="text-end">
               <a class="btn-kf-edit" href="{% url 'prenda_editar' x.prenda.pk %}" title="Editar prenda">Prenda</a>
               <a class="btn-kf-edit" href="{% url 'variante_editar' x.pk %}" title="Editar variante">Mín.</a>
+              <a class="btn-kf-edit" href="{% url 'variante_eliminar' x.pk %}" title="Eliminar esta talla y color">Eliminar</a>
             </td>
             {% endif %}
           </tr>
@@ -550,6 +551,7 @@
     <div class="kf-admin-links mt-3">
       <a class="kf-link-muted" href="{% url 'variante_nueva' %}">+ Agregar talla y color</a>
       <a class="kf-link-muted" href="{% url 'categoria_nueva' %}">+ Nueva categoría</a>
+      <a class="kf-link-muted" href="{% url 'categorias' %}">Ver categorías</a>
       <a class="kf-link-muted" href="{% url 'reponer' %}">Ver prendas por reponer</a>
     </div>
     {% endif %}

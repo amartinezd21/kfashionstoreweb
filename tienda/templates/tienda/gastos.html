@@ -484,7 +484,7 @@
               {% for g in lista %}
               <tr class="{% if g.ambito == 'personal' %}row-personal{% endif %}">
                 <td style="white-space: nowrap;">{{ g.fecha|date:"d M."|lower }}</td>
-                <td>{{ g.descripcion }}</td>
+                <td>{{ g.descripcion }} <a class="ms-1 small" style="color:#8a5a4c" href="{% url 'gasto_editar' g.pk %}">Editar</a></td>
                 <td>
                   {% if g.categoria == 'salario' %}
                   Mi salario

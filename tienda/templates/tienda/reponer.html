@@ -1,12 +1,40 @@
-{% extends "tienda/base.html" %}
+{% extends "tienda/base.html" %}{% load tienda_extras %}
 {% block content %}
-<h1 class="h3">Prendas por reponer</h1>
-<p class="text-muted">Prendas que llegaron a su cantidad mínima, agrupadas por proveedor.</p>
-<div class="table-responsive card"><table class="table m-0">
-  <tr><th>Proveedor</th><th>Prenda</th><th>Talla</th><th>Color</th><th>Stock</th><th>Mínimo</th></tr>
-  {% for x in lista %}
-  <tr><td>{{ x.proveedor|default:"Sin proveedor" }}</td><td>{{ x.prenda.nombre }}</td><td>{{ x.talla }}</td><td>{{ x.color }}</td>
-      <td class="fw-bold {% if x.stock == 0 %}text-danger{% endif %}">{{ x.stock }}</td><td>{{ x.minimo }}</td></tr>
-  {% empty %}<tr><td colspan="6" class="text-center text-muted">Nada por reponer 🎉</td></tr>{% endfor %}
-</table></div>
+{% include "tienda/_estilos.html" %}
+<style>
+  .kfp-agotada { background: rgba(164, 22, 26, 0.12); color: #a4161a; border-radius: 100px; padding: 3px 9px; font-size: 11px; font-weight: 500; }
+  .kfp-color { display: inline-flex; align-items: center; gap: 7px; }
+</style>
+
+<div class="kfp">
+  {% url 'entrada_nueva' as url_entrada %}
+  {% include "tienda/_encabezado.html" with miga="Inventario / Por reponer" titulo="Prendas por reponer" subtitulo="Las que llegaron a su cantidad mínima, agrupadas por proveedor." boton_url=url_entrada boton_texto="+ Registrar entrada" %}
+
+  <div class="kfp-tarjeta">
+    <div class="kfp-tarjeta-top">
+      <h2>Lo que necesitas pedir</h2>
+      <span class="kfp-etiqueta">{{ lista|length }} variante{{ lista|length|pluralize }}</span>
+    </div>
+    <div class="kfp-tabla-caja table-responsive">
+      <table class="kfp-tabla">
+        <thead><tr><th>Proveedor</th><th>Prenda</th><th>Color</th><th>Talla</th><th>Quedan</th><th>Mínimo</th></tr></thead>
+        <tbody>
+        {% for x in lista %}
+        <tr>
+          <td>{% ifchanged x.proveedor %}<b>{{ x.proveedor|default:"Sin proveedor" }}</b>{% endifchanged %}</td>
+          <td>{{ x.prenda.nombre }}</td>
+          <td><span class="kfp-color"><span class="kfp-punto" style="background: {{ x.color|color_hex }}"></span>{{ x.color }}</span></td>
+          <td><span class="kfp-talla">{{ x.talla }}</span></td>
+          <td>{% if x.stock == 0 %}<span class="kfp-agotada">Agotada</span>{% else %}{{ x.stock }}{% endif %}</td>
+          <td>{{ x.minimo }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="vacio">Nada por reponer. ¡Todo el inventario está sobre el mínimo! 🎉</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="kfp-nota"><a href="{% url 'inventario' %}">← Volver al inventario</a></p>
+  </div>
+</div>
 {% endblock %}

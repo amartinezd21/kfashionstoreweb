@@ -1,3 +1,5 @@
-<form class="row g-2 mb-3 no-print"><div class="col-auto"><input type="date" name="desde" value="{{ r.desde|date:'Y-m-d' }}" class="form-control"></div>
-  <div class="col-auto"><input type="date" name="hasta" value="{{ r.hasta|date:'Y-m-d' }}" class="form-control"></div>
-  <div class="col-auto"><button class="btn btn-kf">Consultar</button></div></form>
+<form class="d-flex flex-wrap align-items-end gap-2 mb-3 no-print">
+  <div><label class="d-block" for="rango-desde">Desde</label><input id="rango-desde" type="date" name="desde" value="{{ r.desde|date:'Y-m-d' }}" class="form-control"></div>
+  <div><label class="d-block" for="rango-hasta">Hasta</label><input id="rango-hasta" type="date" name="hasta" value="{{ r.hasta|date:'Y-m-d' }}" class="form-control"></div>
+  <button class="kfp-btn">Consultar</button>
+</form>

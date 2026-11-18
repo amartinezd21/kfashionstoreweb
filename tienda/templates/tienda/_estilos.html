@@ -1,0 +1,86 @@
+<style>
+  /* ===== Estilos compartidos del diseño K Fashion Store (páginas internas) ===== */
+  body, body.bg-light { background-color: #f7eed9 !important; color: #5a0f2e; font-family: 'Jost', sans-serif; }
+  .kfp { --vino: #5a0f2e; --crema: #f7eed9; --durazno: #fdbda0; --suave: rgba(90, 15, 46, 0.7);
+         color: var(--vino); font-variant-numeric: lining-nums; }
+  .kfp a { color: var(--vino); }
+  .kfp-num { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 600; line-height: 1.25; white-space: nowrap; }
+  .kfp-suave { color: var(--suave); }
+
+  /* Barra de contexto + encabezado */
+  .kfp-contexto { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 12px; color: var(--suave); margin-bottom: 23px; }
+  .kfp-contexto a { color: var(--suave); text-decoration: none; }
+  .kfp-contexto-derecha { display: flex; align-items: center; gap: 15px; white-space: nowrap; }
+  .kfp-avatar { width: 28px; height: 28px; border-radius: 50%; background: rgba(253, 189, 160, 0.5); display: inline-flex;
+                align-items: center; justify-content: center; font-size: 11px; font-weight: 500; color: var(--vino); }
+  .kfp-encabezado { background: #feb99a; display: flex; justify-content: space-between; align-items: center; gap: 16px;
+                    flex-wrap: wrap; padding: 6px 0; margin-bottom: 20px; }
+  .kfp-titulo { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 500; font-size: 42px; line-height: 1.25; margin: 0; }
+  .kfp-subtitulo { font-size: 13px; color: var(--suave); margin: 5px 0 0; }
+
+  /* Botones */
+  .kfp-btn { background: var(--vino); color: var(--crema) !important; border: 1px solid var(--durazno); border-radius: 100px;
+             height: 42px; padding: 0 20px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+             font-size: 14px; font-weight: 500; text-decoration: none; white-space: nowrap; cursor: pointer; }
+  .kfp-btn:hover { background: #460b24; }
+  .kfp-btn-claro { background: transparent; color: var(--vino) !important; border: 1px solid var(--vino); }
+  .kfp-btn-claro:hover { background: rgba(253, 189, 160, 0.4); }
+  .kfp-btn-durazno { background: var(--durazno); color: var(--vino) !important; border: 1px solid var(--vino);
+                     height: 34px; padding: 0 14px; font-size: 12px; }
+  .kfp-btn-durazno:hover { background: #feb99a; }
+  .kfp-link { font-size: 12px; font-weight: 500; text-decoration: none; white-space: nowrap; }
+  .kfp-link:hover { text-decoration: underline; }
+
+  /* Pastillas (filtros) */
+  .kfp-selector { background: rgba(253, 189, 160, 0.25); border-radius: 100px; padding: 4px; display: inline-flex; gap: 4px; flex-wrap: wrap; }
+  .kfp-pill { background: var(--crema); border: 1px solid var(--vino); border-radius: 100px; padding: 8px 14px; font-size: 12px;
+              color: var(--suave) !important; text-decoration: none; line-height: 1.25; cursor: pointer; white-space: nowrap; }
+  .kfp-pill:hover { background: rgba(253, 189, 160, 0.5); }
+  .kfp-pill.activa { background: var(--vino); color: var(--crema) !important; font-weight: 500; }
+
+  /* Tarjetas */
+  .kfp-tarjeta { background: var(--crema); border: 1.5px solid var(--durazno); border-radius: 16px; padding: 22px; }
+  .kfp-tarjeta h2 { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 600; font-size: 22px; line-height: 1.25; margin: 0; }
+  .kfp-tarjeta-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+  .kfp-oscura { background: var(--vino); color: var(--crema); border-radius: 16px; padding: 22px 26px; }
+  .kfp-suave-caja { background: rgba(253, 189, 160, 0.25); border-radius: 14px; padding: 16px 20px; }
+  .kfp-etiqueta { background: rgba(253, 189, 160, 0.25); border-radius: 100px; padding: 5px 9px; font-size: 11px; font-weight: 500; white-space: nowrap; }
+  .kfp-oscura .kfp-etiqueta { background: rgba(247, 238, 217, 0.18); color: var(--crema); }
+  .kfp-talla { background: rgba(253, 189, 160, 0.25); border-radius: 5px; padding: 3px 7px; font-size: 10px; font-weight: 500; white-space: nowrap; }
+  .kfp-punto { width: 13px; height: 13px; border-radius: 50%; display: inline-block; vertical-align: -2px; flex-shrink: 0;
+               border: 1px solid rgba(90, 15, 46, 0.25); }
+  .kfp-nota { font-size: 11px; color: var(--suave); margin: 10px 0 0; }
+
+  /* Tablas */
+  .kfp-tabla-caja { border: 1.5px solid var(--durazno); border-radius: 8px; overflow: hidden; }
+  .kfp-tabla { width: 100%; border-collapse: collapse; font-size: 13px; color: var(--vino); }
+  .kfp-tabla th { background: var(--durazno); color: var(--suave); font-size: 11px; font-weight: 500; padding: 12px; text-align: left; white-space: nowrap; }
+  .kfp-tabla td { padding: 12px; border-top: 1px solid var(--durazno); vertical-align: middle; }
+  .kfp-tabla tbody tr:nth-child(even) td { background: rgba(253, 189, 160, 0.25); }
+  .kfp-tabla tbody tr:hover td { background: rgba(253, 189, 160, 0.45); }
+  .kfp-tabla .derecha { text-align: right; }
+  .kfp-tabla .vacio { text-align: center; color: var(--suave); padding: 24px; }
+  .kfp-tabla small { font-size: 11px; color: var(--suave); }
+
+  /* Formularios */
+  .kfp label, .kfp .form-label { font-size: 12px; color: var(--suave); margin-bottom: 7px; }
+  .kfp .form-control, .kfp .form-select, .kfp-input {
+    background-color: var(--crema); border: 1px solid var(--durazno); border-radius: 9px; color: var(--vino);
+    min-height: 42px; font-size: 14px; }
+  .kfp .form-control:focus, .kfp .form-select:focus, .kfp-input:focus {
+    background-color: var(--crema); border-color: var(--vino); box-shadow: 0 0 0 3px rgba(90, 15, 46, 0.12); color: var(--vino); outline: none; }
+  .kfp .form-control::placeholder { color: rgba(90, 15, 46, 0.4); }
+  .kfp .form-check-input:checked { background-color: var(--vino); border-color: var(--vino); }
+  .kfp .errorlist, .kfp-error { color: #a4161a; font-size: 12px; margin-top: 4px; }
+  .kfp .errorlist { list-style: none; padding: 0; }
+
+  /* Paginación */
+  .kfp-paginas { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 13px; font-size: 12px; color: var(--suave); }
+  .kfp-paginas-botones { display: flex; align-items: center; gap: 8px; }
+
+  @media (max-width: 767.98px) {
+    .kfp-titulo { font-size: 34px; }
+    .kfp-contexto { flex-wrap: wrap; }
+  }
+  @media print { body, body.bg-light { background: #fff !important; } }
+</style>

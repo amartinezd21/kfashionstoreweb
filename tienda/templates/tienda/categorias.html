@@ -1,0 +1,35 @@
+{% extends "tienda/base.html" %}
+{% block content %}
+{% include "tienda/_estilos.html" %}
+<div class="kfp">
+  {% url 'categoria_nueva' as url_nueva %}
+  {% include "tienda/_encabezado.html" with miga="Inventario / Categorías" titulo="Categorías" subtitulo="Ordena tus prendas por tipo: vestidos, faldas, enterizos…" boton_url=url_nueva boton_texto="+ Nueva categoría" %}
+
+  <div class="kfp-tarjeta" style="max-width: 760px">
+    <div class="kfp-tarjeta-top">
+      <h2>Tus categorías</h2>
+      <span class="kfp-etiqueta">{{ lista|length }} categoría{{ lista|length|pluralize }}</span>
+    </div>
+    <div class="kfp-tabla-caja table-responsive">
+      <table class="kfp-tabla">
+        <thead><tr><th>Nombre</th><th>Prendas</th><th class="derecha"></th></tr></thead>
+        <tbody>
+        {% for c in lista %}
+        <tr>
+          <td>{{ c.nombre }}</td>
+          <td>{{ c.num_prendas }}</td>
+          <td class="derecha" style="white-space:nowrap">
+            <a class="kfp-link me-3" href="{% url 'categoria_editar' c.pk %}">Editar</a>
+            <a class="kfp-link" href="{% url 'categoria_eliminar' c.pk %}">Eliminar</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="3" class="vacio">Aún no hay categorías.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="kfp-nota"><a href="{% url 'inventario' %}">← Volver al inventario</a></p>
+  </div>
+</div>
+{% endblock %}

@@ -514,7 +514,7 @@
                 <tr>
                   <td>{{ a.fecha|date:"d/m/Y" }}</td>
                   <td>{{ a.get_medio_pago_display }}</td>
-                  <td class="text-end fw-bold">{{ a.valor|cop }}</td>
+                  <td class="text-end fw-bold">{{ a.valor|cop }}{% if es_propietaria %} <a class="ms-1 small fw-normal no-print" style="color:#a4161a" href="{% url 'abono_eliminar' a.pk %}">Eliminar</a>{% endif %}</td>
                 </tr>
                 {% endfor %}
               </tbody>
@@ -649,6 +649,9 @@
         <a class="small text-muted text-decoration-none ms-auto" href="{% url 'ventas' %}">
           Volver a ventas
         </a>
+        {% if es_propietaria %}
+        <a class="small text-decoration-none no-print" style="color:#a4161a" href="{% url 'venta_anular' v.pk %}">Anular venta</a>
+        {% endif %}
       </div>
     </div>
   </div>

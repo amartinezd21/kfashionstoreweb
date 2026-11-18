@@ -1,22 +1,109 @@
 {% extends "tienda/base.html" %}{% load tienda_extras %}
 {% block content %}
+{% include "tienda/_estilos.html" %}
 <style>
-  .btn-nueva-venta { background: #5a0f2e; color: #f7eed9; border: 1px solid #fdbda0; border-radius: 100px; padding: 0.5rem 1.25rem; }
-  .btn-nueva-venta:hover { background: #460b24; color: #f7eed9; }
-  .btn-filtro { background: #f7eed9; color: rgba(90, 15, 46, 0.7); border: 1px solid #5a0f2e; border-radius: 100px; padding: 0.5rem 1rem; }
-  .btn-filtro:hover { background: #5a0f2e; color: #f7eed9; }
+  .kfp-filtros { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+  .kfp-fechas { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+  .kfp-resumen { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 13px; }
+  .kfp-resumen h2 { font-size: 25px !important; }
+  .kfp-buscar { width: 280px; max-width: 100%; }
+  .kfp-prenda { display: flex; align-items: center; gap: 7px; font-size: 12px; white-space: nowrap; }
+  .kfp-prenda + .kfp-prenda { margin-top: 3px; }
+  .kfp-debe { display: block; font-size: 11px; color: #a4161a; }
 </style>
-<div class="d-flex justify-content-between mb-3"><h1 class="h3 m-0">Ventas</h1>
-  <div class="d-flex gap-2">
-    {% if solo_credito %}<a class="btn btn-filtro" href="{% url 'ventas' %}">Ver todas</a>
-    {% else %}<a class="btn btn-filtro" href="?credito=1">Solo créditos con saldo</a>{% endif %}
-    <a class="btn btn-nueva-venta" href="{% url 'venta_nueva' %}">+ Nueva venta</a></div></div>
-<div class="table-responsive card"><table class="table table-hover m-0">
-  <tr><th>Recibo</th><th>Fecha</th><th>Clienta</th><th>Canal</th><th>Modalidad</th><th class="text-end">Total</th><th class="text-end">Saldo</th></tr>
-  {% for v in lista %}
-  <tr><td><a href="{% url 'recibo' v.pk %}">{{ v.numero }}</a></td><td>{{ v.fecha|date:"d/m/Y H:i" }}</td><td>{{ v.cliente|default:"—" }}</td>
-      <td>{{ v.get_canal_display }}</td><td>{{ v.get_modalidad_display }}</td><td class="text-end">{{ v.total|cop }}</td>
-      <td class="text-end {% if v.saldo %}text-danger{% endif %}">{{ v.saldo|cop }}</td></tr>
-  {% empty %}<tr><td colspan="7" class="text-center text-muted">No hay ventas.</td></tr>{% endfor %}
-</table></div>
+
+<div class="kfp">
+  {% url 'venta_nueva' as url_nueva %}
+  {% include "tienda/_encabezado.html" with titulo="Histórico de ventas" subtitulo="Cada compra, cada clienta y cada recibo, en un solo lugar." boton_url=url_nueva boton_texto="+ Nueva venta" %}
+
+  <div class="kfp-filtros no-print">
+    <div class="kfp-selector">
+      {% for clave, nombre, url in periodos %}
+      <a class="kfp-pill{% if periodo == clave %} activa{% endif %}" href="{{ url }}">{{ nombre }}</a>
+      {% endfor %}
+      <a class="kfp-pill{% if periodo == 'fechas' %} activa{% endif %}" data-bs-toggle="collapse" href="#elegir-fechas" role="button"
+         aria-expanded="{% if periodo == 'fechas' %}true{% else %}false{% endif %}" aria-controls="elegir-fechas">Elegir fechas</a>
+    </div>
+    <div class="kfp-selector">
+      {% for clave, nombre, url in modalidades %}
+      <a class="kfp-pill{% if modalidad == clave %} activa{% endif %}" href="{{ url }}">{{ nombre }}</a>
+      {% endfor %}
+    </div>
+  </div>
+  <form id="elegir-fechas" class="kfp-fechas no-print collapse{% if periodo == 'fechas' %} show{% endif %}">
+    <input type="hidden" name="periodo" value="fechas">
+    {% if modalidad %}<input type="hidden" name="modalidad" value="{{ modalidad }}">{% endif %}
+    {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
+    <input class="kfp-input form-control w-auto" type="date" name="desde" value="{{ desde|date:'Y-m-d' }}" aria-label="Desde">
+    <input class="kfp-input form-control w-auto" type="date" name="hasta" value="{{ hasta|date:'Y-m-d' }}" aria-label="Hasta">
+    <button class="kfp-btn" style="height:38px">Consultar</button>
+  </form>
+
+  <div class="kfp-tarjeta">
+    <div class="kfp-resumen">
+      <div>
+        <h2>
+          {% if periodo == "hoy" %}Hoy
+          {% elif periodo == "semana" %}Últimos 7 días
+          {% elif periodo == "mes" %}{{ hasta|date:"F \d\e Y"|capfirst }}
+          {% elif periodo == "fechas" %}{{ desde|date:"j M" }} al {{ hasta|date:"j M Y" }}
+          {% else %}Todas las ventas{% endif %}
+        </h2>
+        <small class="kfp-suave" style="font-size:12px">{{ num_ventas }} venta{{ num_ventas|pluralize }} · {{ total_periodo|cop }} vendidos{% if modalidad == "credito" %} a crédito{% elif modalidad == "contado" %} de contado{% endif %}</small>
+      </div>
+      <form class="kfp-buscar no-print">
+        <input type="hidden" name="periodo" value="{{ periodo }}">
+        {% if periodo == 'fechas' %}<input type="hidden" name="desde" value="{{ desde|date:'Y-m-d' }}"><input type="hidden" name="hasta" value="{{ hasta|date:'Y-m-d' }}">{% endif %}
+        {% if modalidad %}<input type="hidden" name="modalidad" value="{{ modalidad }}">{% endif %}
+        <label for="buscar" class="d-block">Buscar en el histórico</label>
+        <input id="buscar" class="form-control" type="search" name="q" value="{{ q }}" placeholder="Nombre o número de recibo">
+      </form>
+    </div>
+
+    <div class="kfp-tabla-caja table-responsive">
+      <table class="kfp-tabla">
+        <thead><tr><th>Recibo</th><th>Fecha</th><th>Clienta</th><th>Prendas</th><th>Canal</th><th>Pago</th><th class="derecha">Total</th><th class="no-print"></th></tr></thead>
+        <tbody>
+        {% for v in pagina %}
+        <tr>
+          <td>{{ v.numero }}</td>
+          <td style="white-space:nowrap">{{ v.fecha|date:"j M Y"|lower }}</td>
+          <td>{{ v.cliente|default:"Mostrador" }}</td>
+          <td>
+            {% for d in v.detalles.all %}
+            <div class="kfp-prenda">
+              {% if d.cantidad > 1 %}{{ d.cantidad }} × {% endif %}{{ d.variante.prenda.nombre }}
+              <span class="kfp-punto" style="background: {{ d.variante.color|color_hex }}" title="{{ d.variante.color }}"></span>
+              <span class="kfp-talla">{{ d.variante.talla }}</span>
+            </div>
+            {% endfor %}
+          </td>
+          <td>{{ v.get_canal_display }}</td>
+          <td>
+            {{ v.get_modalidad_display }} · {{ v.get_medio_pago_display }}
+            {% if v.modalidad == "credito" and v.saldo > 0 %}<span class="kfp-debe">Debe {{ v.saldo|cop }}</span>{% endif %}
+          </td>
+          <td class="derecha" style="white-space:nowrap">{{ v.total|cop }}</td>
+          <td class="no-print"><a class="kfp-link" href="{% url 'recibo' v.pk %}">Ver recibo →</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" class="vacio">{% if q %}No hay ventas que coincidan con «{{ q }}».{% else %}No hay ventas en este periodo.{% endif %}</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="kfp-paginas no-print">
+      <span>Mostrando {{ pagina|length }} de {{ num_ventas }} venta{{ num_ventas|pluralize }}</span>
+      {% if pagina.paginator.num_pages > 1 %}
+      <div class="kfp-paginas-botones">
+        {% if anterior %}<a class="kfp-btn kfp-btn-durazno" href="{{ anterior }}">Anterior</a>{% endif %}
+        <span class="kfp-etiqueta">{{ pagina.number }} de {{ pagina.paginator.num_pages }}</span>
+        {% if siguiente %}<a class="kfp-btn kfp-btn-durazno" href="{{ siguiente }}">Siguiente</a>{% endif %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  <p class="kfp-nota">Los recibos a crédito muestran el valor total de la compra, no solo el abono recibido.</p>
+</div>
 {% endblock %}

@@ -1,12 +1,46 @@
 {% extends "tienda/base.html" %}{% load tienda_extras %}
 {% block content %}
-<div class="d-flex justify-content-between mb-3"><h1 class="h3 m-0">Clientas</h1>
-  <a class="btn btn-kf" href="{% url 'cliente_nuevo' %}">+ Nueva clienta</a></div>
-<div class="table-responsive card"><table class="table table-hover m-0">
-  <tr><th>Nombre</th><th>Celular</th><th>Ciudad</th><th class="text-end">Saldo pendiente</th></tr>
-  {% for c in lista %}
-  <tr><td><a href="{% url 'cliente_detalle' c.pk %}">{{ c.nombre }}</a></td><td>{{ c.celular }}</td><td>{{ c.ciudad }}</td>
-      <td class="text-end {% if c.saldo %}text-danger fw-bold{% endif %}">{{ c.saldo|cop }}</td></tr>
-  {% empty %}<tr><td colspan="4" class="text-center text-muted">Sin clientas registradas.</td></tr>{% endfor %}
-</table></div>
+{% include "tienda/_estilos.html" %}
+<style>
+  .kfp-buscar-clienta { margin-bottom: 14px; }
+  .kfp-al-dia { background: rgba(253, 189, 160, 0.6); border-radius: 100px; padding: 3px 9px; font-size: 11px; font-weight: 500; }
+</style>
+
+<div class="kfp">
+  {% url 'cliente_nuevo' as url_nueva %}
+  {% include "tienda/_encabezado.html" with miga="Clientas" titulo="Clientas" subtitulo="Conoce a quienes vuelven por una prenda y se quedan por la atención." boton_url=url_nueva boton_texto="+ Nueva clienta" %}
+
+  <div class="kfp-tarjeta">
+    <div class="kfp-tarjeta-top">
+      <h2>Tu comunidad</h2>
+      <span class="kfp-etiqueta">{{ total_clientas }} clienta{{ total_clientas|pluralize }} · {{ con_saldo }} con saldo</span>
+    </div>
+
+    <form class="kfp-buscar-clienta no-print">
+      <label for="buscar" class="d-block">Buscar clienta</label>
+      <input id="buscar" class="form-control" type="search" name="q" value="{{ q }}" placeholder="Nombre, celular o ciudad">
+    </form>
+
+    <div class="kfp-tabla-caja table-responsive">
+      <table class="kfp-tabla">
+        <thead><tr><th>Nombre</th><th>WhatsApp / celular</th><th>Ciudad</th><th>Compras</th><th>Debe</th><th class="no-print"></th></tr></thead>
+        <tbody>
+        {% for c in lista %}
+        <tr>
+          <td><a href="{% url 'cliente_detalle' c.pk %}" class="text-decoration-none fw-medium">{{ c.nombre }}</a></td>
+          <td>{{ c.celular|default:"—" }}</td>
+          <td>{{ c.ciudad|default:"—" }}</td>
+          <td>{{ c.compras }}</td>
+          <td>{% if c.saldo > 0 %}<b>{{ c.saldo|cop }}</b>{% else %}<span class="kfp-al-dia">Al día</span>{% endif %}</td>
+          <td class="no-print"><a class="kfp-link" href="{% url 'cliente_detalle' c.pk %}">Ver →</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="vacio">{% if q %}No hay clientas que coincidan con «{{ q }}».{% else %}Aún no tienes clientas registradas.{% endif %}</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="kfp-nota">{{ total_compras }} compra{{ total_compras|pluralize }} registrada{{ total_compras|pluralize }} entre {% if q %}estas{% else %}tus{% endif %} {{ lista|length }} clienta{{ lista|length|pluralize }}.</p>
+  </div>
+</div>
 {% endblock %}

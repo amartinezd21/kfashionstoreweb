@@ -1,0 +1,70 @@
+{% extends "tienda/base.html" %}{% load tienda_extras %}
+{% block content %}
+{% include "tienda/_estilos.html" %}
+<style>
+  .kfp-total-deuda { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+  .kfp-total-deuda small { font-size: 12px; }
+  .kfp-total-deuda .kfp-num { font-size: 36px; display: block; margin-top: 6px; }
+  .kfp-total-deuda .derecha { text-align: right; font-size: 12px; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+  .kfp-vencida { background: rgba(253, 189, 160, 0.6); border-radius: 100px; padding: 3px 9px; font-size: 11px; font-weight: 500; display: inline-block; margin-top: 4px; }
+  .kfp-pagadas { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+</style>
+
+<div class="kfp">
+  {% include "tienda/_encabezado.html" with titulo="Cuentas por cobrar" subtitulo="Lleva cada abono con claridad y cobra con tranquilidad." %}
+
+  <div class="kfp-oscura kfp-total-deuda">
+    <div>
+      <small>Total que deben las clientas</small>
+      <span class="kfp-num">{{ total_deben|cop }}</span>
+    </div>
+    <div class="derecha">
+      <span class="kfp-etiqueta">{{ pendientes|length }} cuenta{{ pendientes|length|pluralize }} pendiente{{ pendientes|length|pluralize }}</span>
+      <span>{% if vencidas %}{{ vencidas }} vencida{{ vencidas|pluralize }} · {{ total_vencido|cop }}{% else %}Ninguna vencida{% endif %}</span>
+    </div>
+  </div>
+
+  <div class="kfp-tarjeta mb-3">
+    <div class="kfp-tarjeta-top">
+      <h2>Pendientes de pago</h2>
+      <a class="kfp-link no-print" href="{% url 'ventas' %}?modalidad=credito&periodo=todo">Ver todas las ventas a crédito →</a>
+    </div>
+    <div class="kfp-tabla-caja table-responsive">
+      <table class="kfp-tabla">
+        <thead><tr><th>Clienta / recibo</th><th class="derecha">Compra</th><th class="derecha">Abonado</th><th class="derecha">Debe</th><th>Fecha límite</th><th class="no-print"></th></tr></thead>
+        <tbody>
+        {% for v in pendientes %}
+        <tr>
+          <td>
+            {% if v.cliente %}<a href="{% url 'cliente_detalle' v.cliente.pk %}" class="text-decoration-none">{{ v.cliente }}</a>{% else %}Sin clienta{% endif %}<br>
+            <small><a href="{% url 'recibo' v.pk %}" class="text-reset">Recibo {{ v.numero }}</a></small>
+          </td>
+          <td class="derecha">{{ v.total|cop }}</td>
+          <td class="derecha">{{ v.pagado|cop }}</td>
+          <td class="derecha"><b>{{ v.saldo|cop }}</b></td>
+          <td style="white-space:nowrap">
+            {{ v.fecha_limite|date:"j M Y"|lower|default:"Sin fecha" }}
+            {% if v.fecha_limite and v.fecha_limite < hoy %}<br><span class="kfp-vencida">Vencida</span>{% endif %}
+          </td>
+          <td class="no-print"><a class="kfp-btn kfp-btn-durazno" href="{% url 'abono_nuevo' v.pk %}">Registrar abono</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="vacio">Nadie te debe. ¡Todo al día!</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="kfp-tarjeta">
+    <h2>Terminaron de pagar este mes</h2>
+    <div class="kfp-pagadas">
+      {% for v in pagadas_mes %}
+      <a class="kfp-etiqueta text-decoration-none" href="{% url 'recibo' v.pk %}">{{ v.cliente|default:"Sin clienta" }} · {{ v.total|cop }}</a>
+      {% empty %}
+      <span class="kfp-suave" style="font-size:12px">Todavía nadie ha terminado de pagar este mes.</span>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

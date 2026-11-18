@@ -1,36 +1,91 @@
 {% extends "tienda/base.html" %}
 {% block content %}
-<div class="row justify-content-center"><div class="col-lg-7">
-  <h1 class="h4">{{ titulo }}</h1>
-  <form method="post" enctype="multipart/form-data" class="card card-body shadow-sm">{% csrf_token %}
-    {% for f in form %}
-      <div class="mb-3">
-        <label class="form-label" for="{{ f.id_for_label }}">{{ f.label }}</label>
-        {{ f }}
-        {% for e in f.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+{% include "tienda/_estilos.html" %}
+<style>
+  .kfp-campos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 18px; }
+  .kfp-campo-ancho { grid-column: 1 / -1; }
+  .kfp-check { display: flex; align-items: center; gap: 10px; min-height: 42px; }
+  .kfp-check label { margin: 0; font-size: 13px; color: var(--vino); }
+  .kfp-check .form-check-input { width: 20px; height: 20px; margin: 0; border-color: var(--vino); }
+  .kfp-ayuda { font-size: 11px; color: var(--suave); margin-top: 4px; }
+  .kfp-acciones { display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+  .kfp-precio { display: flex; flex-direction: column; gap: 10px; }
+  .kfp-precio .kfp-num { font-size: 32px; }
+  .kfp-precio-fila { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 13px; }
+  @media (max-width: 767.98px) { .kfp-campos { grid-template-columns: 1fr; } }
+</style>
+
+<div class="kfp">
+  {% url volver as url_volver %}
+  {% include "tienda/_encabezado.html" with titulo=titulo boton_url=url_volver boton_texto="← Volver" boton_claro=True %}
+
+  <form method="post" enctype="multipart/form-data">{% csrf_token %}
+    <div class="row g-3">
+      <div class="{% if form.precio_venta %}col-lg-7{% else %}col-lg-8 col-xl-7{% endif %}">
+        <div class="kfp-tarjeta">
+          <h2 class="mb-3">{% if form.precio_venta %}Lo esencial{% else %}Datos{% endif %}</h2>
+          {% if form.non_field_errors %}<div class="kfp-suave-caja mb-3 kfp-error">{{ form.non_field_errors }}</div>{% endif %}
+          <div class="kfp-campos">
+            {% for f in form %}
+            {% if f.widget_type == "checkbox" %}
+            <div class="kfp-campo-ancho">
+              <div class="kfp-check">{{ f }}<label for="{{ f.id_for_label }}">{{ f.label }}</label></div>
+              {% for e in f.errors %}<div class="kfp-error">{{ e }}</div>{% endfor %}
+            </div>
+            {% else %}
+            <div class="{% if f.widget_type == 'textarea' or f.widget_type == 'clearablefile' or f.widget_type == 'file' %}kfp-campo-ancho{% endif %}">
+              <label class="d-block" for="{{ f.id_for_label }}">{{ f.label }}</label>
+              {{ f }}
+              {% if f.help_text %}<div class="kfp-ayuda">{{ f.help_text }}</div>{% endif %}
+              {% for e in f.errors %}<div class="kfp-error">{{ e }}</div>{% endfor %}
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
       </div>
-    {% endfor %}
-    {{ form.non_field_errors }}
-    <div class="d-flex gap-2">
-      <button class="btn btn-kf">Guardar</button>
-      <a class="btn btn-outline-secondary" href="{% url volver %}">Cancelar</a>
+
+      {% if form.precio_venta %}
+      <div class="col-lg-5">
+        <div class="kfp-tarjeta kfp-precio">
+          <h2>Un precio que te conviene</h2>
+          <div class="kfp-precio-fila"><span class="kfp-suave">Costo total por unidad</span><b id="costo-total">$ 0</b></div>
+          <div class="kfp-precio-fila"><span class="kfp-suave">Precio sugerido</span><b id="sugerido">$ 0</b></div>
+          <div class="kfp-precio-fila align-items-center"><span class="kfp-suave">Margen con tu precio</span><span class="kfp-num" id="margen-real">0 %</span></div>
+          <small class="kfp-suave" id="formula" style="font-size:11px"></small>
+          <button type="button" class="kfp-btn kfp-btn-durazno align-self-start" id="usar-sugerido">Usar precio sugerido</button>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="kfp-acciones">
+      {% if eliminar %}<a class="kfp-link me-auto align-self-center" style="color:#a4161a" href="{{ eliminar }}">Eliminar…</a>{% endif %}
+      <a class="kfp-btn kfp-btn-claro" href="{{ url_volver }}">Cancelar</a>
+      <button class="kfp-btn">✓ Guardar</button>
     </div>
   </form>
-</div></div>
+</div>
+
 {% if form.precio_venta %}
 <script>
   // RF-15: precio sugerido = (costo + gastos de presentación) * (1 + % ganancia)
   const g = n => document.getElementById('id_' + n);
-  const caja = document.createElement('div');
-  caja.className = 'alert alert-info mt-3';
-  g('precio_venta').parentElement.appendChild(caja);
-  function sugerir() {
-    const s = Math.round(((+g('costo').value || 0) + (+g('gastos_presentacion').value || 0)) * (1 + (+g('margen').value || 0) / 100));
-    caja.innerHTML = 'Precio sugerido: <b>$ ' + s.toLocaleString('es-CO') + '</b> <button type="button" class="btn btn-sm btn-kf ms-2">Usar</button>';
-    caja.querySelector('button').onclick = () => g('precio_venta').value = s;
+  const fmt = n => '$ ' + Math.round(n).toLocaleString('es-CO');
+  function calcular() {
+    const costo = (+g('costo').value || 0) + (+g('gastos_presentacion').value || 0);
+    const sugerido = Math.round(costo * (1 + (+g('margen').value || 0) / 100));
+    const precio = +g('precio_venta').value || 0;
+    document.getElementById('costo-total').textContent = fmt(costo);
+    document.getElementById('sugerido').textContent = fmt(sugerido);
+    const margen = precio > 0 ? (precio - costo) / precio * 100 : 0;
+    document.getElementById('margen-real').textContent = margen.toLocaleString('es-CO', {maximumFractionDigits: 1}) + ' %';
+    document.getElementById('formula').textContent = precio > 0 ? '(' + fmt(precio) + ' − ' + fmt(costo) + ') ÷ ' + fmt(precio) : 'Escribe el precio de venta para ver tu margen.';
+    return sugerido;
   }
-  ['costo', 'gastos_presentacion', 'margen'].forEach(n => g(n).addEventListener('input', sugerir));
-  sugerir();
+  document.getElementById('usar-sugerido').onclick = () => { g('precio_venta').value = calcular(); calcular(); };
+  ['costo', 'gastos_presentacion', 'margen', 'precio_venta'].forEach(n => g(n).addEventListener('input', calcular));
+  calcular();
 </script>
 {% endif %}
 {% endblock %}
