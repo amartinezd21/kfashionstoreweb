@@ -395,6 +395,9 @@
                   {% if u.is_active %}Desactivar{% else %}Activar{% endif %}
                 </button>
               </form>
+              <a href="{% url 'usuario_eliminar' u.pk %}" class="btn-kf-toggle" style="margin-left:6px; border-color:#b02a37; color:#b02a37; text-decoration:none;">
+                Eliminar
+              </a>
             </td>
           </tr>
           {% empty %}

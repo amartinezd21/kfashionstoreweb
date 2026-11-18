@@ -131,6 +131,21 @@ def usuarios(request):
     return render(request, "tienda/usuarios.html", {"form": form, "lista": lista})
 
 
+@propietaria_required
+def usuario_eliminar(request, pk):
+    u = get_object_or_404(User, pk=pk, perfil__rol="vendedora")
+    tiene_ventas = Venta.objects.filter(vendedor=u).exists()
+    return confirmar_eliminar(
+        request, u, "usuarios", que="Vendedora",
+        bloqueado=(
+            f"«{u.first_name or u.username}» tiene ventas registradas. "
+            "Desactívala en vez de eliminarla para conservar el historial."
+            if tiene_ventas else ""
+        ),
+        aviso=f"Se eliminará el usuario «{u.first_name or u.username}» de forma permanente.",
+    )
+
+
 # ---------- inicio ----------
 @login_required
 def dashboard(request):

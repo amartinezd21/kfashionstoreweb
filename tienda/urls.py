@@ -8,6 +8,7 @@ urlpatterns = [
     path("logout/", auth.LogoutView.as_view(), name="logout"),
     path("cambiar-clave/", v.CambiarClave.as_view(), name="cambiar_clave"),
     path("usuarios/", v.usuarios, name="usuarios"),
+    path("usuarios/<int:pk>/eliminar/", v.usuario_eliminar, name="usuario_eliminar"),
     path("", v.dashboard, name="dashboard"),
 
     path("inventario/", v.inventario, name="inventario"),
