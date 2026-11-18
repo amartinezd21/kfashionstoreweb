@@ -1,67 +1,185 @@
 {% extends "tienda/base.html" %}{% load tienda_extras %}
 {% block content %}
-<h1 class="h3">Balance general</h1>
-{% include "tienda/_rango.html" %}
-<div class="row g-3">
-  <div class="col-lg-6">
-    <div class="card card-body">
-      <h2 class="h6">Lo que entró</h2>
-      <table class="table table-sm m-0">
-        <tr>
-          <td>Vendido en el periodo</td>
-          <td class="text-end">{{ r.total_vendido|cop }}</td>
-        </tr>
-        <tr>
-          <td>Dinero realmente cobrado</td>
-          <td class="text-end fw-bold">{{ r.cobrado|cop }}</td>
-        </tr>
-      </table>
-    </div>
+<style>
+  body, body.bg-light { background-color: #f7eed9 !important; color: #5a0f2e; font-family: 'Jost', sans-serif; }
+  .kf-balance-pag { --vino: #5a0f2e; --crema: #f7eed9; --durazno: #fdbda0; --suave: rgba(90, 15, 46, 0.7);
+                    color: var(--vino); font-variant-numeric: lining-nums; }
+  .kf-balance-pag a { color: var(--vino); }
+  .kf-num { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 600; line-height: 1.25; white-space: nowrap; }
+
+  /* Barra de contexto */
+  .kf-contexto { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--suave); margin-bottom: 23px; }
+  .kf-contexto-derecha { display: flex; align-items: center; gap: 15px; }
+  .kf-avatar { width: 28px; height: 28px; border-radius: 50%; background: rgba(253, 189, 160, 0.5); display: inline-flex;
+               align-items: center; justify-content: center; font-size: 11px; font-weight: 500; }
+
+  /* Encabezado */
+  .kf-encabezado { background: #feb99a; padding: 6px 0; margin-bottom: 20px; }
+  .kf-titulo { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 500; font-size: 42px; line-height: 1.25; margin: 0; }
+  .kf-subtitulo { font-size: 13px; color: var(--suave); margin: 5px 0 0; }
+
+  /* Periodo */
+  .kf-periodo { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+  .kf-selector { background: rgba(253, 189, 160, 0.25); border-radius: 100px; padding: 4px; display: inline-flex; gap: 4px; flex-wrap: wrap; }
+  .kf-pill { background: var(--crema); border: 1px solid var(--vino); border-radius: 100px; padding: 8px 14px; font-size: 12px;
+               color: var(--suave) !important; text-decoration: none; line-height: 1.25; cursor: pointer; }
+  .kf-pill:hover { background: rgba(253, 189, 160, 0.5); }
+  .kf-pill.activa { background: var(--vino); color: var(--crema) !important; font-weight: 500; }
+  .kf-rango-texto { font-size: 13px; color: var(--suave); }
+  .kf-fechas { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+  .kf-fechas input { background: var(--crema); border: 1px solid var(--durazno); border-radius: 9px; color: var(--vino); padding: 6px 10px; }
+  .kf-fechas button { background: var(--vino); color: var(--crema); border: none; border-radius: 100px; padding: 7px 18px; font-size: 13px; }
+
+  /* Tarjetas */
+  .kf-tarjeta { background: var(--crema); border: 1.5px solid var(--durazno); border-radius: 16px; padding: 22px; height: 100%; }
+  .kf-tarjeta h2 { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 600; font-size: 22px; line-height: 1.25; margin: 0; }
+  .kf-resultado { border-radius: 14px; padding: 21px; display: flex; flex-direction: column; gap: 7px; }
+  .kf-resultado small { font-size: 13px; color: var(--suave); }
+  .kf-resultado .kf-num { font-size: 36px; }
+  .kf-resultado.oscuro { background: var(--vino); color: var(--crema); }
+  .kf-resultado.oscuro small { color: var(--crema); }
+
+  /* Gráfica mensual */
+  .kf-nota { font-size: 12px; color: var(--suave); margin: 4px 0 18px; }
+  .kf-grafica { display: flex; align-items: flex-end; gap: 13px; height: 224px; }
+  .kf-escala { width: 70px; height: 224px; display: flex; flex-direction: column; justify-content: space-between;
+               padding: 4px 0 14px; font-size: 10px; color: var(--suave); white-space: nowrap; flex-shrink: 0; }
+  .kf-mes { flex: 1; min-width: 0; height: 224px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+            gap: 9px; font-size: 10px; color: var(--suave); white-space: nowrap; }
+  .kf-mes.actual > span:first-child { color: var(--vino); font-weight: 500; }
+  .kf-barra { width: 100%; max-width: 57px; background: var(--durazno); border-radius: 7px 7px 0 0; }
+  .kf-mes.actual .kf-barra { background: var(--vino); }
+
+  /* En qué se fue el dinero */
+  .kf-dinero { display: flex; flex-direction: column; gap: 15px; }
+  .kf-linea { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .kf-linea span:first-child { font-size: 13px; color: var(--suave); }
+  .kf-linea span:last-child { font-size: 16px; font-weight: 500; white-space: nowrap; }
+  .kf-linea .kf-num { font-size: 32px; font-weight: 600 !important; }
+  .kf-sep { height: 1px; background: var(--durazno); }
+  .kf-pie { font-size: 11px; color: var(--suave); margin: 0; }
+
+  /* Deudas */
+  .kf-deuda { background: rgba(253, 189, 160, 0.25); border-radius: 14px; padding: 21px; display: flex; justify-content: space-between;
+              align-items: center; gap: 12px; flex-wrap: wrap; height: 100%; }
+  .kf-deuda small { font-size: 12px; color: var(--suave); display: block; margin-bottom: 5px; }
+  .kf-deuda .kf-num { font-size: 32px; }
+  .kf-btn-borde { background: var(--durazno); border: 1px solid var(--vino); border-radius: 100px; height: 34px; padding: 0 14px;
+                  display: inline-flex; align-items: center; font-size: 12px; font-weight: 500; text-decoration: none; white-space: nowrap; }
+  .kf-btn-borde:hover { background: #feb99a; }
+  .kf-aviso { font-size: 12px; margin: 0; }
+  .kf-deudora { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid rgba(253, 189, 160, 0.6); font-size: 13px; }
+  .kf-deudora:last-child { border-bottom: none; }
+
+  @media (max-width: 767.98px) {
+    .kf-titulo { font-size: 34px; }
+    .kf-resultado .kf-num { font-size: 28px; }
+    .kf-escala { display: none; }
+    .kf-grafica { gap: 6px; }
+  }
+  @media print { body, body.bg-light { background: #fff !important; } }
+</style>
+
+<div class="kf-balance-pag">
+  <div class="kf-contexto">
+    <span>Mi boutique / Balance general</span>
+    <span class="kf-contexto-derecha">
+      <span>{% now "j \d\e F \d\e Y" as hoy_txt %}{{ hoy_txt|lower }}</span>
+      <span class="kf-avatar">{{ user.first_name|default:user.username|first|upper }}</span>
+    </span>
   </div>
-  <div class="col-lg-6">
-    <div class="card card-body">
-      <h2 class="h6">Lo que salió (negocio)</h2>
-      <table class="table table-sm m-0">
-        {% for clave, nombre in r.categorias %}<tr>
-          <td>{{ nombre }}</td>
-          <td class="text-end">{% for k, val in r.por_cat.items %}{% if k == clave %}{{ val|cop }}{% endif %}{% endfor
-            %}</td>
-        </tr>{% endfor %}
-        <tr>
-          <th>Total gastos</th>
-          <th class="text-end">{{ r.total_gastos|cop }}</th>
-        </tr>
-      </table>
-    </div>
+
+  <div class="kf-encabezado">
+    <h1 class="kf-titulo">Balance general</h1>
+    <p class="kf-subtitulo">Lo que vendiste, lo que invertiste y lo que de verdad te quedó.</p>
   </div>
-  <div class="col-lg-4">
-    <div class="card card-body"><small class="text-muted">Me quedó</small>
-      <div class="card-num {% if r.ganancia < 0 %}text-danger{% else %}text-success{% endif %}">{{ r.ganancia|cop }}
+
+  <div class="kf-periodo no-print">
+    <div class="kf-selector">
+      {% for p in r.periodos %}
+      <a class="kf-pill{% if p.activo %} activa{% endif %}" href="?desde={{ p.desde|date:'Y-m-d' }}&hasta={{ p.hasta|date:'Y-m-d' }}">{{ p.nombre }}</a>
+      {% endfor %}
+      <a class="kf-pill{% if r.fechas_propias %} activa{% endif %}" data-bs-toggle="collapse" href="#elegir-fechas" role="button"
+         aria-expanded="{{ r.fechas_propias|yesno:'true,false' }}" aria-controls="elegir-fechas">Elegir fechas</a>
+    </div>
+    <span class="kf-rango-texto">{{ r.desde|date:"j \d\e F \d\e Y"|lower }} al {{ r.hasta|date:"j \d\e F \d\e Y"|lower }}</span>
+  </div>
+  <form id="elegir-fechas" class="kf-fechas no-print collapse{% if r.fechas_propias %} show{% endif %}">
+    <input type="date" name="desde" value="{{ r.desde|date:'Y-m-d' }}" aria-label="Desde">
+    <input type="date" name="hasta" value="{{ r.hasta|date:'Y-m-d' }}" aria-label="Hasta">
+    <button>Consultar</button>
+  </form>
+
+  <div class="row g-3 mb-3">
+    <div class="col-6 col-lg-3"><div class="kf-tarjeta kf-resultado"><small>Vendiste</small><span class="kf-num">{{ r.total_vendido|cop }}</span></div></div>
+    <div class="col-6 col-lg-3"><div class="kf-tarjeta kf-resultado"><small>Gastaste</small><span class="kf-num">{{ r.gastos_sin_salario|cop }}</span></div></div>
+    <div class="col-6 col-lg-3"><div class="kf-tarjeta kf-resultado"><small>Tu salario</small><span class="kf-num">{{ r.salario|cop }}</span></div></div>
+    <div class="col-6 col-lg-3"><div class="kf-tarjeta kf-resultado oscuro"><small>Te quedó</small><span class="kf-num">{{ r.ganancia|cop }}</span></div></div>
+  </div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-lg-7">
+      <div class="kf-tarjeta">
+        <h2>Así van tus ventas</h2>
+        <p class="kf-nota">Ventas por mes · {{ r.meses.0.mes|date:"F"|lower }} a {{ r.hasta|date:"F \d\e Y"|lower }}</p>
+        <div class="kf-grafica">
+          <div class="kf-escala"><span>{{ r.escala.0|cop }}</span><span>{{ r.escala.1|cop }}</span><span>$ 0</span></div>
+          {% for m in r.meses %}
+          <div class="kf-mes{% if m.actual %} actual{% endif %}">
+            <span>{{ m.total|cop }}</span>
+            <div class="kf-barra" style="height: {{ m.alto }}px"></div>
+            <span>{{ m.mes|date:"F"|capfirst }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-5">
+      <div class="kf-tarjeta kf-dinero">
+        <h2>En qué se fue el dinero</h2>
+        <div class="kf-linea"><span>Dinero cobrado</span><span>{{ r.cobrado|cop }}</span></div>
+        {% for nombre, monto in r.lineas_gasto %}
+        <div class="kf-linea"><span>{{ nombre }}</span><span>{% if monto %}− {% endif %}{{ monto|cop }}</span></div>
+        {% endfor %}
+        <div class="kf-linea"><span>Tu salario</span><span>{% if r.salario %}− {% endif %}{{ r.salario|cop }}</span></div>
+        <div class="kf-sep"></div>
+        <div class="kf-linea"><span>Lo que quedó</span><span class="kf-num">{{ r.ganancia|cop }}</span></div>
+        <p class="kf-pie">Gastos del negocio: {{ r.gastos_sin_salario|cop }}, sin incluir tu salario.</p>
       </div>
     </div>
   </div>
-  <div class="col-lg-4">
-    <div class="card card-body"><small class="text-muted">Clientas me deben</small>
-      <div class="card-num">{{ r.por_cobrar|cop }}</div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-lg-6">
+      <div class="kf-deuda">
+        <div><small>Te deben las clientas</small><span class="kf-num">{{ r.por_cobrar|cop }}</span></div>
+        <a class="kf-btn-borde no-print" href="{% url 'ventas' %}?credito=1">Ver cuentas por cobrar</a>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="kf-deuda">
+        <div><small>Debes a proveedores</small><span class="kf-num">{{ r.por_pagar|cop }}</span></div>
+        <a class="kf-btn-borde no-print" href="{% url 'proveedores' %}">Ver proveedores</a>
+      </div>
     </div>
   </div>
-  <div class="col-lg-4">
-    <div class="card card-body"><small class="text-muted">Debo a proveedores</small>
-      <div class="card-num">{{ r.por_pagar|cop }}</div>
-    </div>
+
+  <div class="kf-tarjeta mb-3" style="height:auto">
+    <p class="kf-aviso">
+      {% if r.salario %}✓ En este periodo se registró tu salario.{% else %}⚠ No hay salario registrado en este periodo.{% endif %}
+      {% if r.por_cat.arriendo and r.por_cat.servicios %}✓ Arriendo y servicios cubiertos.{% else %}⚠ Falta registrar arriendo o servicios.{% endif %}
+    </p>
   </div>
+
+  {% if r.deudoras %}
+  <div class="kf-tarjeta mb-3" style="height:auto">
+    <h2 class="mb-2">Clientas con saldo pendiente</h2>
+    {% for c in r.deudoras %}
+    <div class="kf-deudora"><a href="{% url 'cliente_detalle' c.pk %}">{{ c.nombre }}</a><span>{{ c.saldo|cop }}</span></div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <p class="kf-pie">Lo que quedó se calcula con el dinero cobrado: las ventas a crédito cuentan cuando la clienta paga. Los gastos personales no hacen parte de este balance.</p>
 </div>
-<p class="mt-3">
-  {% if r.por_cat.salario %}En este periodo se registró el salario de la propietaria.{% else %}⚠ No hay salario
-  registrado en este periodo.{% endif %}
-  {% if r.por_cat.arriendo and r.por_cat.servicios %}Arriendo y servicios cubiertos.{% else %}Falta registrar arriendo o
-  servicios.{% endif %}
-</p>
-{% if r.deudoras %}<h2 class="h5">Clientas con saldo pendiente</h2>
-<div class="card">
-  <table class="table m-0">{% for c in r.deudoras %}<tr>
-      <td><a href="{% url 'cliente_detalle' c.pk %}">{{ c.nombre }}</a></td>
-      <td class="text-end text-danger">{{ c.saldo|cop }}</td>
-    </tr>{% endfor %}</table>
-</div>{% endif %}
 {% endblock %}

@@ -334,4 +334,34 @@ def balance(request):
     desde, hasta = rango_fechas(request)
     r = resumen(desde, hasta)
     r["deudoras"] = [c for c in Cliente.objects.all() if c.saldo > 0]
+
+    # Separar el salario de los demás gastos del negocio
+    r["salario"] = r["por_cat"].get("salario", CERO)
+    r["gastos_sin_salario"] = r["total_gastos"] - r["salario"]
+    r["lineas_gasto"] = [(nombre, r["por_cat"][clave]) for clave, nombre in Gasto.CATEGORIAS if clave != "salario"]
+
+    # Botones de periodo: Semana, Mes, Trimestre
+    hoy = timezone.localdate()
+    inicio_mes = hoy.replace(day=1)
+    inicio_trimestre = (inicio_mes - timedelta(days=62)).replace(day=1)
+    periodos = [("Semana", hoy - timedelta(days=6)), ("Mes", inicio_mes), ("Trimestre", inicio_trimestre)]
+    r["periodos"] = [{"nombre": n, "desde": d, "hasta": hoy, "activo": (d, hoy) == (desde, hasta)} for n, d in periodos]
+    r["fechas_propias"] = not any(p["activo"] for p in r["periodos"])
+
+    # Ventas de los últimos 5 meses hasta el mes de "hasta"
+    meses = []
+    primero = hasta.replace(day=1)
+    for _ in range(5):
+        siguiente = (primero + timedelta(days=32)).replace(day=1)
+        rango = [timezone.make_aware(datetime.combine(d, time.min)) for d in (primero, siguiente)]
+        total = Venta.objects.filter(fecha__gte=rango[0], fecha__lt=rango[1]).aggregate(t=Sum("total"))["t"] or CERO
+        meses.append({"mes": primero, "total": total})
+        primero = (primero - timedelta(days=1)).replace(day=1)
+    meses.reverse()
+    maximo = max(m["total"] for m in meses) or 1
+    for m in meses:
+        m["alto"] = max(3, round(m["total"] / maximo * 165))
+    meses[-1]["actual"] = True
+    r["meses"] = meses
+    r["escala"] = (maximo if maximo != 1 else CERO, maximo / 2 if maximo != 1 else CERO)
     return render(request, "tienda/balance.html", {"r": r})
