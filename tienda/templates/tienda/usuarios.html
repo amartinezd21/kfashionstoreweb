@@ -1,409 +1,93 @@
 {% extends "tienda/base.html" %}
 {% block content %}
+{% include "tienda/_estilos.html" %}
 <style>
-  body {
-    background-color: #f7eed9 !important;
-    color: #5a0f2e;
-    font-family: 'Jost', sans-serif;
-  }
-
-  /* Barra superior / migas de pan y fecha */
-  .kf-header-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    font-family: 'Jost', sans-serif;
-  }
-
-  .kf-breadcrumb {
-    font-size: 13px;
-    color: #a87c74;
-  }
-
-  .kf-breadcrumb a {
-    color: #a87c74;
-    text-decoration: none;
-  }
-
-  .kf-header-meta {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .kf-header-date {
-    font-size: 13px;
-    color: #a87c74;
-  }
-
-  .kf-avatar-circle {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: #f9d5bc;
-    color: #5a0f2e;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    font-weight: 600;
-  }
-
-  /* Banner Principal / Hero */
-  .kf-hero-banner {
-    background: #feb99a;
-    border-radius: 16px;
-    padding: 24px 28px;
-    margin-bottom: 24px;
-  }
-
-  .kf-hero-title {
-    font-family: 'Cormorant Garamond', Georgia, serif;
-    font-size: 38px;
-    font-weight: 600;
-    line-height: 1.15;
-    color: #5a0f2e;
-    margin: 0 0 6px 0;
-  }
-
-  .kf-hero-subtitle {
-    font-size: 14px;
-    color: rgba(90, 15, 46, 0.85);
-    margin: 0;
-  }
-
-  /* Tarjetas contenedoras */
-  .kf-card {
-    background: #f7eed9;
-    border: 1px solid #ebd2c1;
-    border-radius: 18px;
-    padding: 26px 28px;
-    margin-bottom: 24px;
-  }
-
-  .kf-card-title {
-    font-family: 'Cormorant Garamond', Georgia, serif;
-    font-size: 24px;
-    font-weight: 600;
-    color: #5a0f2e;
-    margin-bottom: 6px;
-  }
-
-  .kf-card-subtitle {
-    font-size: 13px;
-    color: #8a5a4c;
-    margin-bottom: 22px;
-  }
-
-  /* Tabla "Quién puede entrar" */
-  .kf-table-wrapper {
-    overflow-x: auto;
-  }
-
-  .kf-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    margin: 0;
-  }
-
-  .kf-table thead tr {
-    background: #fdbda0;
-  }
-
-  .kf-table th {
-    padding: 12px 18px;
-    font-size: 12px;
-    font-weight: 600;
-    color: #723b36;
-    border: none;
-    white-space: nowrap;
-  }
-
-  .kf-table th:first-child {
-    border-top-left-radius: 10px;
-    border-bottom-left-radius: 10px;
-  }
-
-  .kf-table th:last-child {
-    border-top-right-radius: 10px;
-    border-bottom-right-radius: 10px;
-  }
-
-  .kf-table tbody tr {
-    border-bottom: 1px solid rgba(235, 210, 193, 0.45);
-  }
-
-  .kf-table tbody tr:last-child {
-    border-bottom: none;
-  }
-
-  .kf-table td {
-    padding: 16px 18px;
-    font-size: 13px;
-    color: #5a0f2e;
-    vertical-align: middle;
-    border: none;
-  }
-
-  /* Badges de estado */
-  .kf-badge {
-    display: inline-block;
-    padding: 4px 14px;
-    border-radius: 50px;
-    font-size: 11px;
-    font-weight: 600;
-    text-align: center;
-  }
-
-  .kf-badge-activa {
-    background: #faede2;
-    color: #5a0f2e;
-  }
-
-  .kf-badge-sincrear {
-    background: #fad3ba;
-    color: #6e2d3b;
-  }
-
-  .kf-badge-inactiva {
-    background: #eed5cc;
-    color: #7a2b45;
-  }
-
-  .kf-text-muted {
-    color: #8a5a4c;
-    font-size: 12px;
-  }
-
-  /* Botón alternar estado */
-  .btn-kf-toggle {
-    background: transparent;
-    border: 1px solid #5a0f2e;
-    color: #5a0f2e;
-    border-radius: 50px;
-    padding: 4px 14px;
-    font-size: 11px;
-    font-weight: 600;
-    transition: all 0.2s ease;
-    cursor: pointer;
-  }
-
-  .btn-kf-toggle:hover {
-    background: #5a0f2e;
-    color: #f7eed9;
-  }
-
-  /* Campos de formulario */
-  .kf-label {
-    display: block;
-    font-size: 12px;
-    font-weight: 600;
-    color: #6e3b33;
-    margin-bottom: 6px;
-  }
-
-  .kf-input {
-    width: 100%;
-    height: 44px;
-    border-radius: 10px;
-    border: 1px solid #ebd2c1;
-    background: #fbf6ee;
-    padding: 8px 16px;
-    font-family: 'Jost', sans-serif;
-    font-size: 13px;
-    color: #5a0f2e;
-    outline: none;
-    transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
-  }
-
-  .kf-input::placeholder {
-    color: #b5928a;
-    opacity: 0.8;
-  }
-
-  .kf-input:focus {
-    border-color: #5a0f2e;
-    background: #ffffff;
-    box-shadow: 0 0 0 3px rgba(90, 15, 46, 0.12);
-  }
-
-  .kf-helper-text {
-    font-size: 12px;
-    color: #8a5a4c;
-    margin-top: 10px;
-    margin-bottom: 22px;
-  }
-
-  /* Botones formulario */
-  .btn-kf-cancelar {
-    background: #fdbda0;
-    border: 1px solid #f2ab8d;
-    color: #5a0f2e;
-    border-radius: 50px;
-    padding: 9px 26px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s;
-    text-decoration: none;
-  }
-
-  .btn-kf-cancelar:hover {
-    background: #fcae8c;
-    color: #5a0f2e;
-  }
-
-  .btn-kf-crear {
-    background: #5a0f2e;
-    border: none;
-    color: #f7eed9;
-    border-radius: 50px;
-    padding: 9px 24px;
-    font-size: 13px;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-
-  .btn-kf-crear:hover {
-    background: #440921;
-    color: #f7eed9;
-  }
-
-  /* Permisos vendedora (Tarjeta derecha) */
-  .kf-permisos-heading {
-    font-size: 13px;
-    font-weight: 700;
-    color: #5a0f2e;
-    margin-bottom: 12px;
-  }
-
-  .kf-permisos-list {
+  .kfp-permisos-list {
     list-style: none;
     padding: 0;
-    margin: 0 0 26px 0;
+    margin: 0 0 18px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    font-size: 14px;
   }
 
-  .kf-permisos-list li {
+  .kfp-permisos-list li {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 5px 0;
-    font-size: 13px;
-    color: #5a0f2e;
   }
 
-  .kf-check {
-    font-weight: bold;
-    color: #5a0f2e;
-    font-size: 14px;
-  }
-
-  .kf-tag-restricted {
-    display: inline-block;
-    background: #fad3ba;
-    color: #6e2d3b;
-    border-radius: 50px;
-    padding: 4px 14px;
-    font-size: 11px;
-    font-weight: 600;
-  }
-
-  /* Banner inferior de advertencia / nota */
-  .kf-bottom-banner {
-    background: #fae0d2;
-    border-radius: 12px;
-    padding: 12px 20px;
-    display: flex;
+  .kfp-check-circle {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #e2f3ea;
+    color: #165936;
+    display: inline-flex;
     align-items: center;
-    gap: 12px;
-    color: #5a0f2e;
+    justify-content: center;
     font-size: 13px;
-    margin-top: 10px;
-  }
-
-  .kf-bottom-banner svg {
     flex-shrink: 0;
   }
 </style>
 
-<div class="kf-usuarios-page">
-  <!-- Barra superior con breadcrumb, fecha y avatar -->
-  <div class="kf-header-bar">
-    <div class="kf-breadcrumb">
-      <span>Mi boutique</span> / <span>Usuarios</span>
-    </div>
-    <div class="kf-header-meta">
-      <span class="kf-header-date">{% now "j \d\e F \d\e Y"|lower %}</span>
-      <div class="kf-avatar-circle" title="K Fashion Store">K</div>
-    </div>
-  </div>
+<div class="kfp">
+  {% include "tienda/_encabezado.html" with miga="Ajustes / Usuarios" titulo="Usuarios" subtitulo="Tu tienda, tus accesos. Comparte solo lo necesario." %}
 
-  <!-- Banner principal -->
-  <div class="kf-hero-banner">
-    <h1 class="kf-hero-title">Usuarios</h1>
-    <p class="kf-hero-subtitle">Tu tienda, tus accesos. Comparte solo lo necesario.</p>
-  </div>
-
-  <!-- Sección: Quién puede entrar -->
-  <div class="kf-card">
-    <h2 class="kf-card-title">Quién puede entrar</h2>
-    <div class="kf-table-wrapper">
-      <table class="kf-table">
+  <!-- Tabla de usuarios -->
+  <div class="kfp-tarjeta mb-4">
+    <div class="kfp-tarjeta-top">
+      <h2><i class="ti ti-users me-1"></i> Quién puede entrar</h2>
+    </div>
+    <div class="kfp-tabla-caja">
+      <table class="kfp-tabla">
         <thead>
           <tr>
             <th>Nombre</th>
             <th>Usuario</th>
             <th>Rol</th>
             <th>Estado</th>
-            <th class="text-end"></th>
+            <th class="derecha no-print">Acciones</th>
           </tr>
         </thead>
         <tbody>
-          <!-- Fila Propietaria -->
           <tr>
-            <td>Propietaria · K Fashion Store</td>
+            <td><strong>Propietaria · K Fashion Store</strong></td>
             <td>{{ user.username|default:"propietaria" }}</td>
             <td>Propietaria</td>
-            <td><span class="kf-badge kf-badge-activa">Activa</span></td>
-            <td class="text-end"><span class="kf-text-muted">Acceso completo</span></td>
+            <td><span class="kfp-badge kfp-badge-exito">Activa</span></td>
+            <td class="derecha"><small>Acceso completo</small></td>
           </tr>
 
-          <!-- Filas Vendedoras -->
           {% for u in lista %}
           <tr>
-            <td>{{ u.first_name|default:u.username }}</td>
+            <td><strong>{{ u.first_name|default:u.username }}</strong></td>
             <td>{{ u.username }}</td>
             <td>Vendedora</td>
             <td>
               {% if u.is_active %}
-              <span class="kf-badge kf-badge-activa">Activa</span>
+              <span class="kfp-badge kfp-badge-exito">Activa</span>
               {% else %}
-              <span class="kf-badge kf-badge-inactiva">Desactivada</span>
+              <span class="kfp-badge kfp-badge-peligro">Desactivada</span>
               {% endif %}
             </td>
-            <td class="text-end">
+            <td class="derecha no-print" style="white-space:nowrap;">
               <form method="post" class="d-inline">
                 {% csrf_token %}
                 <input type="hidden" name="alternar" value="{{ u.pk }}">
-                <button type="submit" class="btn-kf-toggle">
-                  {% if u.is_active %}Desactivar{% else %}Activar{% endif %}
+                <button type="submit" class="kfp-btn kfp-btn-claro" style="height:32px; padding:0 12px; font-size:12px;">
+                  {% if u.is_active %}<i class="ti ti-user-off"></i> Desactivar{% else %}<i class="ti ti-user-check"></i> Activar{% endif %}
                 </button>
               </form>
+              <a class="kfp-btn kfp-btn-claro ms-1" style="height:32px; padding:0 12px; font-size:12px; color:#a4161a !important; border-color:rgba(164,22,26,0.35);" href="{% url 'usuario_eliminar' u.pk %}" title="Eliminar vendedora">
+                <i class="ti ti-trash"></i> Eliminar
+              </a>
             </td>
           </tr>
           {% empty %}
           <tr>
-            <td>Sin vendedora por ahora</td>
-            <td>—</td>
-            <td>Vendedora</td>
-            <td><span class="kf-badge kf-badge-sincrear">Sin crear</span></td>
-            <td class="text-end"></td>
+            <td colspan="5" class="vacio">Sin vendedoras creadas por ahora.</td>
           </tr>
           {% endfor %}
         </tbody>
@@ -411,96 +95,76 @@
     </div>
   </div>
 
-  <!-- Sección inferior: Formulario (Izquierda) + Permisos (Derecha) -->
-  <div class="row g-4 align-items-stretch">
-    <!-- Columna Izquierda: Nuevo usuario de vendedora -->
+  <!-- Formulario + Permisos -->
+  <div class="row g-4 align-items-stretch mb-4">
     <div class="col-lg-7">
-      <div class="kf-card h-100 mb-0">
-        <h2 class="kf-card-title">Nuevo usuario de vendedora</h2>
-        <p class="kf-card-subtitle">Déjalo listo para cuando tengas a alguien que te acompañe.</p>
+      <div class="kfp-tarjeta h-100">
+        <div class="kfp-tarjeta-top mb-2">
+          <div>
+            <h2><i class="ti ti-user-plus me-1"></i> Nuevo usuario de vendedora</h2>
+            <small class="kfp-suave">Déjalo listo para cuando tengas a alguien que te acompañe.</small>
+          </div>
+        </div>
 
         <form method="post" id="formVendedora">
           {% csrf_token %}
 
-          <!-- Nombre completo -->
           <div class="mb-3">
-            <label class="kf-label" for="id_first_name">Nombre completo</label>
-            <input type="text" name="first_name" id="id_first_name" class="kf-input" placeholder="Valeria Romero" value="{{ form.first_name.value|default:'' }}" required>
-            {% for e in form.first_name.errors %}
-            <div class="text-danger small mt-1">{{ e }}</div>
-            {% endfor %}
+            <label class="form-label" for="id_first_name">Nombre completo</label>
+            <input type="text" name="first_name" id="id_first_name" class="form-control" placeholder="Valeria Romero" value="{{ form.first_name.value|default:'' }}" required>
+            {% for e in form.first_name.errors %}<div class="kfp-error">{{ e }}</div>{% endfor %}
           </div>
 
-          <!-- Usuario y Contraseña inicial -->
           <div class="row g-3 mb-2">
             <div class="col-sm-6">
-              <label class="kf-label" for="id_username">Usuario</label>
-              <input type="text" name="username" id="id_username" class="kf-input" placeholder="valeria.romero" value="{{ form.username.value|default:'' }}" required>
-              {% for e in form.username.errors %}
-              <div class="text-danger small mt-1">{{ e }}</div>
-              {% endfor %}
+              <label class="form-label" for="id_username">Usuario</label>
+              <input type="text" name="username" id="id_username" class="form-control" placeholder="valeria.romero" value="{{ form.username.value|default:'' }}" required>
+              {% for e in form.username.errors %}<div class="kfp-error">{{ e }}</div>{% endfor %}
             </div>
             <div class="col-sm-6">
-              <label class="kf-label" for="id_password">Contraseña inicial</label>
-              <input type="password" name="password" id="id_password" class="kf-input" placeholder="•••••••••" value="{{ form.password.value|default:'' }}" required>
-              {% for e in form.password.errors %}
-              <div class="text-danger small mt-1">{{ e }}</div>
-              {% endfor %}
+              <label class="form-label" for="id_password">Contraseña inicial</label>
+              <input type="text" name="password" id="id_password" class="form-control" placeholder="Mínimo 6 caracteres" value="{{ form.password.value|default:'' }}" required>
+              {% for e in form.password.errors %}<div class="kfp-error">{{ e }}</div>{% endfor %}
             </div>
           </div>
 
-          <!-- Texto descriptivo -->
-          <p class="kf-helper-text">Comparte estas credenciales directamente con tu vendedora. No hay registro abierto.</p>
+          <p class="kfp-nota mb-3">Comparte estas credenciales directamente con tu vendedora. No hay registro abierto.</p>
 
-          <!-- Botones de acción -->
-          <div class="d-flex justify-content-end align-items-center gap-3">
-            <button type="reset" class="btn-kf-cancelar">Cancelar</button>
-            <button type="submit" class="btn-kf-crear">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                <circle cx="8.5" cy="7" r="4"></circle>
-                <line x1="20" y1="8" x2="20" y2="14"></line>
-                <line x1="23" y1="11" x2="17" y2="11"></line>
-              </svg>
-              Crear usuario de vendedora
-            </button>
+          <div class="d-flex justify-content-end align-items-center gap-2 flex-wrap">
+            <button type="reset" class="kfp-btn kfp-btn-claro">Cancelar</button>
+            <button type="submit" class="kfp-btn"><i class="ti ti-user-plus"></i> Crear usuario de vendedora</button>
           </div>
         </form>
       </div>
     </div>
 
-    <!-- Columna Derecha: Un acceso pensado para vender -->
     <div class="col-lg-5">
-      <div class="kf-card h-100 mb-0">
-        <h2 class="kf-card-title">Un acceso pensado para vender</h2>
+      <div class="kfp-tarjeta h-100">
+        <h2 class="mb-3"><i class="ti ti-shield-lock me-1"></i> Un acceso pensado para vender</h2>
 
-        <div class="kf-permisos-heading mt-3">Podrá ver y usar</div>
-        <ul class="kf-permisos-list">
-          <li><span class="kf-check">✓</span> Inventario</li>
-          <li><span class="kf-check">✓</span> Recibo de venta</li>
-          <li><span class="kf-check">✓</span> Clientes</li>
-          <li><span class="kf-check">✓</span> Abonos de clientas</li>
+        <div class="kfp-suave mb-2" style="font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.04em;">Podrá ver y usar</div>
+        <ul class="kfp-permisos-list">
+          <li><span class="kfp-check-circle"><i class="ti ti-check"></i></span> Nueva venta e histórico</li>
+          <li><span class="kfp-check-circle"><i class="ti ti-check"></i></span> Caja diaria y arqueo</li>
+          <li><span class="kfp-check-circle"><i class="ti ti-check"></i></span> Inventario, cambios y mermas</li>
+          <li><span class="kfp-check-circle"><i class="ti ti-check"></i></span> Clientas y abonos</li>
         </ul>
 
-        <div class="kf-permisos-heading">No podrá ver</div>
-        <div class="d-flex flex-wrap gap-2 pt-1">
-          <span class="kf-tag-restricted">Gastos</span>
-          <span class="kf-tag-restricted">Proveedores</span>
-          <span class="kf-tag-restricted">Reportes</span>
-          <span class="kf-tag-restricted">Balance</span>
+        <div class="kfp-suave mb-2" style="font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.04em;">No podrá ver</div>
+        <div class="d-flex flex-wrap gap-2">
+          <span class="kfp-badge kfp-badge-neutro">Gastos</span>
+          <span class="kfp-badge kfp-badge-neutro">Proveedores</span>
+          <span class="kfp-badge kfp-badge-neutro">Reportes</span>
+          <span class="kfp-badge kfp-badge-neutro">Balance</span>
+          <span class="kfp-badge kfp-badge-neutro">Usuarios</span>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Banner inferior: Nota sobre cambio de contraseña -->
-  <div class="kf-bottom-banner">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="10"></circle>
-      <line x1="12" y1="16" x2="12" y2="12"></line>
-      <line x1="12" y1="8" x2="12.01" y2="8"></line>
-    </svg>
-    <span>Al entrar por primera vez deberá cambiar la contraseña. Puedes desactivar su usuario cuando deje de trabajar en la tienda</span>
+  <div class="kfp-suave-caja d-flex align-items-center gap-2" style="font-size:13px;">
+    <i class="ti ti-info-circle fs-5"></i>
+    <span>Al entrar por primera vez deberá cambiar su contraseña obligatoriamente. Puedes desactivar o eliminar su usuario cuando deje de trabajar en la tienda.</span>
   </div>
 </div>
 {% endblock %}

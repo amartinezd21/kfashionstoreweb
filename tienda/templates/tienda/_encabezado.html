@@ -1,13 +1,20 @@
 {% comment %}
   Barra de contexto + franja durazno con el título.
-  Uso: {% include "tienda/_encabezado.html" with miga="Clientas" titulo="Clientas" subtitulo="..." boton_url=... boton_texto="+ Nueva clienta" %}
-  Opcional: boton_claro=True para el botón con borde (ej. "← Volver").
+  Uso: {% include "tienda/_encabezado.html" with miga="Clientas" titulo="Clientas" subtitulo="..." boton_url=... boton_texto="Nueva clienta" boton_icono="ti-plus" %}
+  Opcional: boton_claro=True para el botón con borde (ej. "Volver").
 {% endcomment %}
 <div class="kfp-contexto">
-  <span><a href="{% url 'dashboard' %}">Mi boutique</a> / {{ miga|default:titulo }}</span>
+  <span class="d-inline-flex align-items-center gap-2 flex-wrap">
+    {% if request.resolver_match.url_name != 'dashboard' %}
+    <button type="button" class="kfp-btn-back no-print" onclick="kfVolverAtras('{% url 'dashboard' %}')" title="Volver atrás" aria-label="Volver atrás">
+      <i class="ti ti-arrow-left"></i>
+    </button>
+    {% endif %}
+    <span><a href="{% url 'dashboard' %}"><i class="ti ti-home"></i> Mi boutique</a> / {{ miga|default:titulo }}</span>
+  </span>
   <span class="kfp-contexto-derecha">
-    <span>{% now "j \d\e F \d\e Y" as hoy_txt %}{{ hoy_txt|lower }}</span>
-    <span class="kfp-avatar">{{ user.first_name|default:user.username|first|upper }}</span>
+    <span><i class="ti ti-calendar"></i> {% now "j \d\e F \d\e Y" as hoy_txt %}{{ hoy_txt|lower }}</span>
+    <span class="kfp-avatar" title="{{ user.get_full_name|default:user.username }}">{{ user.first_name|default:user.username|first|upper }}</span>
   </span>
 </div>
 <div class="kfp-encabezado">
@@ -15,5 +22,10 @@
     <h1 class="kfp-titulo">{{ titulo }}</h1>
     {% if subtitulo %}<p class="kfp-subtitulo">{{ subtitulo }}</p>{% endif %}
   </div>
-  {% if boton_url %}<a class="kfp-btn{% if boton_claro %} kfp-btn-claro{% endif %} no-print" href="{{ boton_url }}">{{ boton_texto }}</a>{% endif %}
+  {% if boton_url %}
+  <a class="kfp-btn{% if boton_claro %} kfp-btn-claro{% endif %} no-print" href="{{ boton_url }}">
+    {% if boton_icono %}<i class="ti {{ boton_icono }}"></i>{% elif boton_claro %}<i class="ti ti-arrow-left"></i>{% else %}<i class="ti ti-plus"></i>{% endif %}
+    {{ boton_texto }}
+  </a>
+  {% endif %}
 </div>

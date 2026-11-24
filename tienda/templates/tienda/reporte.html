@@ -9,8 +9,18 @@
 </style>
 
 <div class="kfp">
-  {% include "tienda/_encabezado.html" with titulo="Reporte" subtitulo="Ventas, gastos y ganancia del periodo que elijas." %}
-  {% include "tienda/_rango.html" %}
+  {% include "tienda/_encabezado.html" with miga="Análisis / Reporte" titulo="Reporte" subtitulo="Ventas, gastos y ganancia del periodo que elijas." %}
+  <div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3 no-print">
+    <div>{% include "tienda/_rango.html" %}</div>
+    <div class="d-flex gap-2 mb-3">
+      <a class="kfp-btn kfp-btn-durazno" href="{% url 'balance_exportar' %}?desde={{ r.desde|date:'Y-m-d' }}&hasta={{ r.hasta|date:'Y-m-d' }}">
+        <i class="ti ti-file-spreadsheet"></i> Exportar Excel
+      </a>
+      <a class="kfp-btn kfp-btn-claro" style="height:36px; padding:0 14px; font-size:12.5px;" href="{% url 'balance_exportar' %}?desde={{ r.desde|date:'Y-m-d' }}&hasta={{ r.hasta|date:'Y-m-d' }}&formato=csv">
+        <i class="ti ti-download"></i> CSV
+      </a>
+    </div>
+  </div>
   <p class="kfp-suave" style="font-size:13px">{{ r.desde|date:"j \d\e F \d\e Y"|lower }} al {{ r.hasta|date:"j \d\e F \d\e Y"|lower }}</p>
 
   <div class="row g-3">

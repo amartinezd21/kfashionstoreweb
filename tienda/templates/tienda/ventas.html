@@ -29,6 +29,14 @@
       <a class="kfp-pill{% if modalidad == clave %} activa{% endif %}" href="{{ url }}">{{ nombre }}</a>
       {% endfor %}
     </div>
+    <div class="d-flex gap-2">
+      <a class="kfp-btn kfp-btn-durazno" href="{% url 'ventas_exportar' %}{{ export_qs }}">
+        <i class="ti ti-file-spreadsheet"></i> Excel
+      </a>
+      <a class="kfp-btn kfp-btn-claro" style="height:36px; padding:0 12px; font-size:12px;" href="{% url 'ventas_exportar' %}{{ export_qs }}{% if export_qs %}&{% else %}?{% endif %}formato=csv">
+        <i class="ti ti-download"></i> CSV
+      </a>
+    </div>
   </div>
   <form id="elegir-fechas" class="kfp-fechas no-print collapse{% if periodo == 'fechas' %} show{% endif %}">
     <input type="hidden" name="periodo" value="fechas">

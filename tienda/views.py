@@ -15,8 +15,9 @@ from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 
 from . import forms
+from .exportar import generar_recibo_pdf, respuesta_csv, respuesta_excel
 from .models import (CERO, Abono, Categoria, Cliente, DetalleVenta, EntradaMercancia, Gasto, Prenda,
-                     Proveedor, Variante, Venta, es_propietaria)
+                     Proveedor, Variante, Venta, CambioPrenda, Merma, Caja, es_propietaria)
 
 
 # ---------- utilidades ----------
@@ -68,6 +69,8 @@ def rango_fechas(request):
         hasta = date.fromisoformat(request.GET.get("hasta", ""))
     except ValueError:
         hasta = hoy
+    if desde > hasta:
+        desde, hasta = hasta, desde
     return desde, hasta
 
 
@@ -131,6 +134,32 @@ def usuarios(request):
     return render(request, "tienda/usuarios.html", {"form": form, "lista": lista})
 
 
+@propietaria_required
+def usuario_eliminar(request, pk):
+    u = get_object_or_404(User, pk=pk, perfil__rol="vendedora")
+    num_ventas = Venta.objects.filter(vendedor=u).count()
+    num_otros = (CambioPrenda.objects.filter(usuario=u).count()
+                 + Merma.objects.filter(usuario=u).count()
+                 + Caja.objects.filter(usuario=u).count())
+
+    def borrar():
+        if num_ventas:
+            Venta.objects.filter(vendedor=u).update(vendedor=request.user)
+        if num_otros:
+            CambioPrenda.objects.filter(usuario=u).update(usuario=request.user)
+            Merma.objects.filter(usuario=u).update(usuario=request.user)
+            Caja.objects.filter(usuario=u).update(usuario=request.user)
+        nombre = u.first_name or u.username
+        u.delete()
+        return f"Usuario de vendedora «{nombre}» eliminado correctamente."
+
+    aviso = ("Esta vendedora ya tiene ventas o movimientos registrados; si la eliminas, "
+             "su historial pasará a nombre de tu cuenta (Propietaria) para no perder registros."
+             if (num_ventas or num_otros)
+             else "Esta vendedora perderá el acceso a la tienda de forma permanente.")
+    return confirmar_eliminar(request, u, "usuarios", que="Vendedora", accion=borrar, aviso=aviso)
+
+
 # ---------- inicio ----------
 @login_required
 def dashboard(request):
@@ -171,14 +200,64 @@ def dashboard(request):
 
 
 # ---------- inventario ----------
+def _filtrar_inventario(request):
+    q = request.GET.get("q", "").strip()
+    variantes = Variante.objects.select_related("prenda", "prenda__categoria", "proveedor").filter(prenda__activa=True)
+    if q:
+        variantes = variantes.filter(
+            Q(prenda__nombre__icontains=q)
+            | Q(prenda__codigo__icontains=q)
+            | Q(color__icontains=q)
+            | Q(talla__iexact=q)
+            | Q(prenda__categoria__nombre__icontains=q)
+        )
+    return variantes.distinct(), q
+
+
 @login_required
 def inventario(request):
-    q = request.GET.get("q", "").strip()
-    variantes = Variante.objects.select_related("prenda", "prenda__categoria").filter(prenda__activa=True)
-    if q:
-        variantes = variantes.filter(prenda__nombre__icontains=q) | variantes.filter(
-            prenda__codigo__icontains=q) | variantes.filter(color__icontains=q) | variantes.filter(talla__iexact=q)
-    return render(request, "tienda/inventario.html", {"variantes": variantes.distinct(), "q": q})
+    variantes, q = _filtrar_inventario(request)
+    return render(request, "tienda/inventario.html", {"variantes": variantes, "q": q})
+
+
+@login_required
+def inventario_exportar(request):
+    variantes, _ = _filtrar_inventario(request)
+    solo_publico = not es_propietaria(request.user)
+    encabezados = ["Código", "Prenda", "Categoría", "Talla", "Color", "Stock", "Mínimo"]
+    if not solo_publico:
+        encabezados += ["Costo", "Precio Venta", "Margen %", "Proveedor", "Estado"]
+    else:
+        encabezados += ["Precio Venta", "Estado"]
+
+    filas = []
+    for x in variantes:
+        estado = "Agotado" if x.stock == 0 else ("Reponer" if x.por_reponer else "Bien")
+        fila = [
+            x.prenda.codigo or "",
+            x.prenda.nombre,
+            x.prenda.categoria.nombre,
+            x.talla,
+            x.color,
+            x.stock,
+            x.minimo,
+        ]
+        if not solo_publico:
+            fila += [
+                int(x.prenda.costo),
+                int(x.prenda.precio_venta),
+                float(x.prenda.margen),
+                x.proveedor.nombre if x.proveedor else "Sin proveedor",
+                estado,
+            ]
+        else:
+            fila += [int(x.prenda.precio_venta), estado]
+        filas.append(fila)
+
+    if request.GET.get("formato") == "csv":
+        return respuesta_csv("kfashion_inventario", encabezados, filas)
+    cols_moneda = {8, 9} if not solo_publico else {8}
+    return respuesta_excel("kfashion_inventario", [("Inventario", encabezados, filas, cols_moneda)])
 
 
 @propietaria_required
@@ -259,11 +338,7 @@ def cliente_detalle(request, pk):
 
 
 # ---------- ventas ----------
-@login_required
-def ventas(request):
-    if request.GET.get("credito") == "1":
-        return cuentas_por_cobrar(request)
-
+def _filtrar_ventas(request):
     hoy = timezone.localdate()
     periodo = request.GET.get("periodo", "mes")
     modalidad = request.GET.get("modalidad", "")
@@ -276,7 +351,7 @@ def ventas(request):
     else:
         periodo, desde, hasta = "todo", None, None
 
-    qs = Venta.objects.select_related("cliente").prefetch_related("detalles__variante__prenda")
+    qs = Venta.objects.select_related("cliente", "vendedor").prefetch_related("detalles__variante__prenda")
     if desde:
         qs = qs.filter(fecha__gte=inicio_del_dia(desde), fecha__lt=inicio_del_dia(hasta + timedelta(days=1)))
     if modalidad in ("contado", "credito"):
@@ -287,7 +362,15 @@ def ventas(request):
         if numero:
             filtro |= Q(pk=int(numero))
         qs = qs.filter(filtro)
+    return qs, periodo, modalidad, q, desde, hasta
 
+
+@login_required
+def ventas(request):
+    if request.GET.get("credito") == "1":
+        return cuentas_por_cobrar(request)
+
+    qs, periodo, modalidad, q, desde, hasta = _filtrar_ventas(request)
     totales = qs.aggregate(n=Count("id"), t=Sum("total"))
     pagina = Paginator(qs, 10).get_page(request.GET.get("pagina"))
 
@@ -308,8 +391,34 @@ def ventas(request):
                         [("", "Todas"), ("contado", "Contado"), ("credito", "Crédito")]],
         "anterior": enlace(pagina=pagina.previous_page_number()) if pagina.has_previous() else "",
         "siguiente": enlace(pagina=pagina.next_page_number()) if pagina.has_next() else "",
+        "export_qs": enlace(pagina=""),
     }
     return render(request, "tienda/ventas.html", ctx)
+
+
+@login_required
+def ventas_exportar(request):
+    qs, _, _, _, _, _ = _filtrar_ventas(request)
+    encabezados = ["Recibo", "Fecha", "Clienta", "Prendas", "Canal", "Modalidad", "Medio Pago", "Total", "Pagado", "Saldo", "Vendedor"]
+    filas = []
+    for v in qs:
+        prendas_txt = "; ".join(f"{d.cantidad}x {d.variante.prenda.nombre} ({d.variante.talla}/{d.variante.color})" for d in v.detalles.all())
+        filas.append([
+            v.numero,
+            timezone.localtime(v.fecha).strftime("%Y-%m-%d %H:%M"),
+            v.cliente.nombre if v.cliente else "Mostrador",
+            prendas_txt,
+            v.get_canal_display(),
+            v.get_modalidad_display(),
+            v.get_medio_pago_display(),
+            int(v.total),
+            int(v.pagado),
+            int(v.saldo),
+            v.vendedor.first_name or v.vendedor.username,
+        ])
+    if request.GET.get("formato") == "csv":
+        return respuesta_csv("kfashion_ventas", encabezados, filas)
+    return respuesta_excel("kfashion_ventas", [("Ventas", encabezados, filas, {8, 9, 10})])
 
 
 def cuentas_por_cobrar(request):
@@ -377,7 +486,210 @@ def venta_nueva(request):
 @login_required
 def recibo(request, pk):
     v = get_object_or_404(Venta.objects.select_related("cliente", "vendedor"), pk=pk)
-    return render(request, "tienda/recibo.html", {"v": v, "detalles": v.detalles.select_related("variante__prenda")})
+    return render(request, "tienda/recibo.html", {
+        "v": v,
+        "detalles": v.detalles.select_related("variante__prenda"),
+        "cambios": v.cambios.select_related("variante_devuelta__prenda", "variante_nueva__prenda", "usuario"),
+    })
+
+
+@login_required
+def recibo_pdf(request, pk):
+    v = get_object_or_404(Venta.objects.select_related("cliente", "vendedor"), pk=pk)
+    return generar_recibo_pdf(v)
+
+
+@login_required
+def venta_cambio(request, pk):
+    venta = get_object_or_404(Venta, pk=pk)
+    form = forms.CambioPrendaForm(request.POST or None, venta=venta)
+    if request.method == "POST" and form.is_valid():
+        try:
+            with transaction.atomic():
+                cambio = form.save(commit=False)
+                cambio.venta = venta
+                cambio.usuario = request.user
+
+                dev = Variante.objects.select_for_update().get(pk=cambio.variante_devuelta_id)
+                dev.stock += cambio.cantidad
+                dev.save(update_fields=["stock"])
+
+                nueva = Variante.objects.select_for_update().get(pk=cambio.variante_nueva_id)
+                if cambio.cantidad > nueva.stock:
+                    raise ValueError(f"Solo quedan {nueva.stock} unidades de {nueva}.")
+                nueva.stock -= cambio.cantidad
+                nueva.save(update_fields=["stock"])
+
+                if cambio.diferencia_precio > 0:
+                    venta.total += cambio.diferencia_precio
+                    venta.save(update_fields=["total"])
+
+                cambio.save()
+            messages.success(request, f"Cambio registrado exitosamente en la venta {venta.numero}.")
+            return redirect("recibo", pk=venta.pk)
+        except ValueError as e:
+            messages.error(request, str(e))
+    return render(request, "tienda/form.html", {
+        "form": form,
+        "titulo": f"Cambio de prenda · Venta {venta.numero}",
+        "volver": reverse("recibo", args=[pk]),
+    })
+
+
+@login_required
+def mermas(request):
+    desde, hasta = rango_fechas(request)
+    qs = Merma.objects.filter(fecha__range=(desde, hasta)).select_related("variante__prenda", "usuario")
+    total_piezas = qs.aggregate(t=Sum("cantidad"))["t"] or 0
+    costo_perdidas = sum((m.costo_total for m in qs), CERO)
+    return render(request, "tienda/mermas.html", {
+        "mermas": qs,
+        "desde": desde,
+        "hasta": hasta,
+        "total_piezas": total_piezas,
+        "costo_perdidas": costo_perdidas,
+    })
+
+
+@login_required
+def mermas_exportar(request):
+    desde, hasta = rango_fechas(request)
+    qs = Merma.objects.filter(fecha__range=(desde, hasta)).select_related("variante__prenda", "usuario")
+    encabezados = ["Fecha", "Código", "Prenda", "Talla", "Color", "Tipo", "Cantidad", "Costo Unitario", "Costo Pérdida", "Motivo", "Registró"]
+    filas = [
+        [
+            m.fecha.strftime("%Y-%m-%d"),
+            m.variante.prenda.codigo or "",
+            m.variante.prenda.nombre,
+            m.variante.talla,
+            m.variante.color,
+            m.get_tipo_display(),
+            m.cantidad,
+            int(m.variante.prenda.costo),
+            int(m.costo_total),
+            m.motivo,
+            m.usuario.first_name or m.usuario.username,
+        ]
+        for m in qs
+    ]
+    if request.GET.get("formato") == "csv":
+        return respuesta_csv("kfashion_mermas", encabezados, filas)
+    return respuesta_excel("kfashion_mermas", [("Mermas", encabezados, filas, {8, 9})])
+
+
+@login_required
+def merma_nueva(request):
+    form = forms.MermaForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        try:
+            with transaction.atomic():
+                merma = form.save(commit=False)
+                merma.usuario = request.user
+                v = Variante.objects.select_for_update().get(pk=merma.variante_id)
+                if merma.cantidad > v.stock:
+                    raise ValueError(f"Solo quedan {v.stock} unidades de {v}.")
+                v.stock -= merma.cantidad
+                v.save(update_fields=["stock"])
+                merma.save()
+            messages.success(request, f"Baja de {merma.cantidad} unidad(es) de {v} registrada correctamente.")
+            return redirect("mermas")
+        except ValueError as e:
+            messages.error(request, str(e))
+    return render(request, "tienda/form.html", {
+        "form": form,
+        "titulo": "Registrar merma o baja de prenda",
+        "volver": "mermas",
+    })
+
+
+@login_required
+def caja_control(request):
+    caja_abierta = Caja.objects.filter(estado="abierta").first()
+
+    if request.method == "POST" and "abrir_caja" in request.POST:
+        if caja_abierta:
+            messages.warning(request, "Ya existe una caja abierta.")
+            return redirect("caja_control")
+        form_apertura = forms.AperturaCajaForm(request.POST)
+        if form_apertura.is_valid():
+            caja = form_apertura.save(commit=False)
+            caja.usuario = request.user
+            caja.estado = "abierta"
+            caja.fecha_apertura = timezone.now()
+            caja.save()
+            messages.success(request, f"Caja abierta con base inicial de ${caja.monto_apertura:,.0f}.".replace(",", "."))
+            return redirect("caja_control")
+
+    if request.method == "POST" and "cerrar_caja" in request.POST and caja_abierta:
+        form_cierre = forms.CierreCajaForm(request.POST, instance=caja_abierta)
+        if form_cierre.is_valid():
+            c = form_cierre.save(commit=False)
+            ahora = timezone.now()
+            c.fecha_cierre = ahora
+            c.estado = "cerrada"
+
+            ventas_turno = Venta.objects.filter(fecha__gte=c.fecha_apertura, fecha__lte=ahora)
+            ventas_efectivo = ventas_turno.filter(modalidad="contado", medio_pago="efectivo").aggregate(t=Sum("total"))["t"] or CERO
+            ventas_digital = ventas_turno.filter(modalidad="contado").exclude(medio_pago="efectivo").aggregate(t=Sum("total"))["t"] or CERO
+
+            abonos_turno = Abono.objects.filter(fecha__gte=c.fecha_apertura.date(), fecha__lte=ahora.date())
+            abonos_efectivo = abonos_turno.filter(medio_pago="efectivo").aggregate(t=Sum("valor"))["t"] or CERO
+            abonos_digital = abonos_turno.exclude(medio_pago="efectivo").aggregate(t=Sum("valor"))["t"] or CERO
+
+            gastos_turno = Gasto.objects.filter(fecha__gte=c.fecha_apertura.date(), fecha__lte=ahora.date(), medio_pago="efectivo")
+            gastos_efectivo = gastos_turno.aggregate(t=Sum("monto"))["t"] or CERO
+
+            c.sistema_efectivo = c.monto_apertura + ventas_efectivo + abonos_efectivo - gastos_efectivo
+            c.sistema_digital = ventas_digital + abonos_digital
+            c.diferencia = c.efectivo_cierre - c.sistema_efectivo
+            c.save()
+
+            if c.diferencia == 0:
+                messages.success(request, "¡Cuadre de caja perfecto! Sin sobrantes ni faltantes.")
+            elif c.diferencia > 0:
+                messages.info(request, f"Caja cerrada con sobrante de ${c.diferencia:,.0f}.".replace(",", "."))
+            else:
+                messages.warning(request, f"Caja cerrada con faltante de ${abs(c.diferencia):,.0f}.".replace(",", "."))
+            return redirect("caja_control")
+
+    resumen_caja = None
+    if caja_abierta:
+        ahora = timezone.now()
+        ventas_turno = Venta.objects.filter(fecha__gte=caja_abierta.fecha_apertura, fecha__lte=ahora)
+        v_efectivo = ventas_turno.filter(modalidad="contado", medio_pago="efectivo").aggregate(t=Sum("total"))["t"] or CERO
+        v_digital = ventas_turno.filter(modalidad="contado").exclude(medio_pago="efectivo").aggregate(t=Sum("total"))["t"] or CERO
+
+        por_medio = {}
+        for medio, nombre in [("nequi", "Nequi"), ("bancolombia", "Bancolombia"), ("daviplata", "Daviplata"), ("datafono", "Datáfono Bold"), ("link", "Link de pago")]:
+            v_m = ventas_turno.filter(modalidad="contado", medio_pago=medio).aggregate(t=Sum("total"))["t"] or CERO
+            ab_m = Abono.objects.filter(fecha__gte=caja_abierta.fecha_apertura.date(), fecha__lte=ahora.date(), medio_pago=medio).aggregate(t=Sum("valor"))["t"] or CERO
+            por_medio[medio] = {"nombre": nombre, "total": v_m + ab_m}
+
+        ab_efectivo = Abono.objects.filter(fecha__gte=caja_abierta.fecha_apertura.date(), fecha__lte=ahora.date(), medio_pago="efectivo").aggregate(t=Sum("valor"))["t"] or CERO
+        gastos_ef = Gasto.objects.filter(fecha__gte=caja_abierta.fecha_apertura.date(), fecha__lte=ahora.date(), medio_pago="efectivo").aggregate(t=Sum("monto"))["t"] or CERO
+        esperado_efectivo = caja_abierta.monto_apertura + v_efectivo + ab_efectivo - gastos_ef
+
+        resumen_caja = {
+            "v_efectivo": v_efectivo,
+            "v_digital": v_digital,
+            "ab_efectivo": ab_efectivo,
+            "gastos_efectivo": gastos_ef,
+            "esperado_efectivo": esperado_efectivo,
+            "por_medio": por_medio,
+            "ventas_count": ventas_turno.count(),
+        }
+
+    cajas_anteriores = Caja.objects.filter(estado="cerrada")[:15]
+    form_apertura = forms.AperturaCajaForm()
+    form_cierre = forms.CierreCajaForm(instance=caja_abierta) if caja_abierta else None
+
+    return render(request, "tienda/caja.html", {
+        "caja_abierta": caja_abierta,
+        "resumen_caja": resumen_caja,
+        "form_apertura": form_apertura,
+        "form_cierre": form_cierre,
+        "cajas_anteriores": cajas_anteriores,
+    })
 
 
 @login_required
@@ -405,7 +717,7 @@ def proveedores(request):
         e.pagada = True
         e.save(update_fields=["pagada"])
         Gasto.objects.create(fecha=timezone.localdate(), categoria="mercancia", monto=e.valor_compra,
-                             descripcion=f"Pago a {e.proveedor}: {e.cantidad} x {e.variante}")
+                             descripcion=f"Pago a {e.proveedor or 'Proveedor eliminado'}: {e.cantidad} x {e.variante}")
         messages.success(request, "Pago registrado como gasto de mercancía.")
         return redirect("proveedores")
     return render(request, "tienda/proveedores.html", {
@@ -473,6 +785,53 @@ def balance(request):
     r["meses"] = meses
     r["escala"] = (maximo if maximo != 1 else CERO, maximo / 2 if maximo != 1 else CERO)
     return render(request, "tienda/balance.html", {"r": r})
+
+
+@propietaria_required
+def balance_exportar(request):
+    desde, hasta = rango_fechas(request)
+    r = resumen(desde, hasta)
+    salario = r["por_cat"].get("salario", CERO)
+    gastos_sin_salario = r["total_gastos"] - salario
+
+    enc_res = ["Concepto", "Periodo", "Valor"]
+    periodo_txt = f"{desde.strftime('%d/%m/%Y')} al {hasta.strftime('%d/%m/%Y')}"
+    filas_res = [
+        ["Número de ventas", periodo_txt, r["num_ventas"]],
+        ["Total vendido (facturado)", periodo_txt, int(r["total_vendido"])],
+        ["Dinero cobrado (contado + abonos)", periodo_txt, int(r["cobrado"])],
+        ["Gastos operativos (sin salario)", periodo_txt, int(gastos_sin_salario)],
+        ["Salario propietaria", periodo_txt, int(salario)],
+        ["Total gastos del negocio", periodo_txt, int(r["total_gastos"])],
+        ["Ganancia neta (cobrado - gastos)", periodo_txt, int(r["ganancia"])],
+        ["Cuentas por cobrar (clientas)", "Corte " + hasta.strftime("%d/%m/%Y"), int(r["por_cobrar"])],
+        ["Cuentas por pagar (proveedores)", "Actual", int(r["por_pagar"])],
+    ]
+    for clave, nombre in Gasto.CATEGORIAS:
+        filas_res.append([f"Gasto · {nombre}", periodo_txt, int(r["por_cat"].get(clave, CERO))])
+
+    if request.GET.get("formato") == "csv":
+        return respuesta_csv("kfashion_balance", enc_res, filas_res)
+
+    gastos_qs = Gasto.objects.filter(fecha__range=(desde, hasta))
+    enc_gastos = ["Fecha", "Ámbito", "Categoría", "Descripción", "Medio de pago", "Monto"]
+    filas_gastos = [
+        [g.fecha.strftime("%Y-%m-%d"), g.get_ambito_display(), g.get_categoria_display(), g.descripcion, g.get_medio_pago_display(), int(g.monto)]
+        for g in gastos_qs
+    ]
+
+    deudoras = [c for c in Cliente.objects.all() if c.saldo > 0]
+    enc_cartera = ["Clienta", "Celular", "Ciudad", "Saldo pendiente"]
+    filas_cartera = [[c.nombre, c.celular, c.ciudad, int(c.saldo)] for c in deudoras]
+
+    return respuesta_excel(
+        "kfashion_balance",
+        [
+            ("Resumen Balance", enc_res, filas_res, {3}),
+            ("Gastos del Periodo", enc_gastos, filas_gastos, {6}),
+            ("Cartera Clientas", enc_cartera, filas_cartera, {4}),
+        ],
+    )
 
 
 # ======================================================================
@@ -545,7 +904,7 @@ def entrada_eliminar(request, pk):
         e.delete()
         return f"Entrada eliminada. Se restaron {e.cantidad} unidades de {v}."
     return confirmar_eliminar(request, e, "proveedores", que="Entrada de mercancía", accion=borrar, bloqueado=bloqueo,
-                              aviso=f"Se restarán {e.cantidad} unidades del inventario y desaparecerá la deuda con {e.proveedor}.")
+                              aviso=f"Se restarán {e.cantidad} unidades del inventario y desaparecerá la deuda con {e.proveedor or 'el proveedor'}.")
 
 
 # ---------- clientas ----------
@@ -560,8 +919,21 @@ def cliente_editar(request, pk):
 def cliente_eliminar(request, pk):
     c = get_object_or_404(Cliente, pk=pk)
     n = c.ventas.count()
-    return confirmar_eliminar(request, c, "clientes", que="Clienta", bloqueado=(
-        f"Tiene {n} compra(s) registradas. Para no perder su historial no se puede eliminar." if n else ""))
+    saldo = c.saldo
+    if saldo > 0:
+        bloqueo = f"Tiene un saldo pendiente por cobrar de ${saldo:,.0f}. Registra el pago antes de eliminarla.".replace(",", ".")
+        return confirmar_eliminar(request, c, "clientes", que="Clienta", bloqueado=bloqueo)
+
+    def borrar():
+        if n:
+            c.ventas.update(cliente=None)
+        nombre = c.nombre
+        c.delete()
+        return f"Clienta «{nombre}» eliminada." + (" Sus compras anteriores quedaron registradas como Mostrador." if n else "")
+
+    aviso = (f"Tiene {n} compra(s) pagada(s). Si la eliminas, esas facturas se conservarán a nombre de Mostrador."
+             if n else "")
+    return confirmar_eliminar(request, c, "clientes", que="Clienta", accion=borrar, aviso=aviso)
 
 
 # ---------- proveedores ----------
@@ -574,10 +946,14 @@ def proveedor_editar(request, pk):
 @propietaria_required
 def proveedor_eliminar(request, pk):
     p = get_object_or_404(Proveedor, pk=pk)
+    saldo = p.saldo
+    if saldo > 0:
+        bloqueo = f"Le debes ${saldo:,.0f} en compras pendientes de pago. Marca como pagadas esas entradas antes de eliminarlo.".replace(",", ".")
+        return confirmar_eliminar(request, p, "proveedores", que="Proveedor", bloqueado=bloqueo)
     n = p.entradas.count()
-    return confirmar_eliminar(request, p, "proveedores", que="Proveedor",
-                              aviso="Las prendas que tenían este proveedor quedarán sin proveedor asignado.",
-                              bloqueado=f"Tiene {n} entrada(s) de mercancía registradas. No se puede eliminar." if n else "")
+    aviso = ("Las prendas y " + (f"{n} entrada(s) de mercancía " if n else "registros ")
+             + "asociados quedarán sin proveedor asignado, conservando todo el historial.")
+    return confirmar_eliminar(request, p, "proveedores", que="Proveedor", aviso=aviso)
 
 
 # ---------- gastos ----------

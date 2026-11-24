@@ -1,0 +1,202 @@
+{% extends "tienda/base.html" %}{% load tienda_extras %}
+{% block content %}
+{% include "tienda/_estilos.html" %}
+
+<div class="kfp">
+  <div class="kfp-contexto">
+    <span class="d-inline-flex align-items-center gap-2 flex-wrap">
+      <button type="button" class="kfp-btn-back no-print" onclick="kfVolverAtras('{% url 'dashboard' %}')" title="Volver atrás" aria-label="Volver atrás">
+        <i class="ti ti-arrow-left"></i>
+      </button>
+      <span><a href="{% url 'dashboard' %}"><i class="ti ti-home"></i> Mi boutique</a> / Dinero / Caja y Arqueo</span>
+    </span>
+    <span class="kfp-contexto-derecha">
+      <span>{% now "j \d\e F \d\e Y" as hoy_txt %}{{ hoy_txt|lower }}</span>
+      <span class="kfp-avatar">{{ user.first_name|default:user.username|first|upper }}</span>
+    </span>
+  </div>
+
+  <div class="kfp-encabezado">
+    <div>
+      <h1 class="kfp-titulo">Control y Arqueo de Caja</h1>
+      <p class="kfp-subtitulo">Apertura, cuadre de dinero en tiempo real y cierre de turno.</p>
+    </div>
+    {% if caja_abierta %}
+      <span class="kfp-badge kfp-badge-exito px-3 py-2" style="font-size:13px;"><i class="ti ti-circle-filled" style="font-size:10px;"></i> Turno Abierto</span>
+    {% else %}
+      <span class="kfp-badge kfp-badge-neutro px-3 py-2" style="font-size:13px;"><i class="ti ti-lock"></i> Caja Cerrada</span>
+    {% endif %}
+  </div>
+
+  {% if not caja_abierta %}
+  <!-- FORMULARIO DE APERTURA DE CAJA -->
+  <div class="kfp-tarjeta mb-4 shadow-sm" style="max-width: 650px; margin: 0 auto;">
+    <div class="kfp-tarjeta-top">
+      <h2><i class="ti ti-lock-open me-1"></i> Abrir nuevo turno de caja</h2>
+      <small class="text-muted">Ingresa la base de cambio para comenzar</small>
+    </div>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="abrir_caja" value="1">
+      <div class="mb-3">
+        <label for="{{ form_apertura.monto_apertura.id_for_label }}" class="form-label fw-bold">Base en efectivo inicial ($)</label>
+        {{ form_apertura.monto_apertura }}
+        <small class="text-muted">Billetes y monedas disponibles en caja para dar vueltos.</small>
+      </div>
+      <button type="submit" class="kfp-btn w-100 py-2"><i class="ti ti-lock-open"></i> Abrir turno de caja</button>
+    </form>
+  </div>
+  {% else %}
+  <!-- CAJA ABIERTA: RESUMEN EN VIVO Y ARQUEO -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="kfp-tarjeta">
+        <span class="text-muted" style="font-size:12px;">Base inicial (efectivo)</span>
+        <div class="kfp-num" style="font-size:24px;">{{ caja_abierta.monto_apertura|cop }}</div>
+        <small class="text-muted">Abierta: {{ caja_abierta.fecha_apertura|date:"g:i a" }}</small>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="kfp-tarjeta">
+        <span class="text-muted" style="font-size:12px;">Cobrado en efectivo hoy</span>
+        <div class="kfp-num" style="font-size:24px; color: #198754;">+ {{ resumen_caja.v_efectivo|add:resumen_caja.ab_efectivo|cop }}</div>
+        <small class="text-muted">Ventas y abonos</small>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="kfp-tarjeta">
+        <span class="text-muted" style="font-size:12px;">Gastos en efectivo de caja</span>
+        <div class="kfp-num" style="font-size:24px; color: #dc3545;">- {{ resumen_caja.gastos_efectivo|cop }}</div>
+        <small class="text-muted">Salidas registradas</small>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="kfp-tarjeta" style="background:#fff6f1; border-color:var(--vino);">
+        <span class="text-muted fw-bold" style="font-size:12px; color:var(--vino) !important;">Efectivo esperado en caja</span>
+        <div class="kfp-num" style="font-size:26px; color:var(--vino);">{{ resumen_caja.esperado_efectivo|cop }}</div>
+        <small class="text-muted">Base + Efectivo - Gastos</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- RECAUDOS DIGITALES DEL TURNO -->
+  <div class="kfp-tarjeta mb-4">
+    <div class="kfp-tarjeta-top">
+      <h2>Canales Digitales (Consignaciones / Vouchers)</h2>
+      <span class="badge bg-light text-dark fs-6">{{ resumen_caja.v_digital|cop }} en total</span>
+    </div>
+    <div class="row g-2">
+      {% for medio, d in resumen_caja.por_medio.items %}
+      <div class="col-md">
+        <div class="p-2 border rounded bg-white text-center">
+          <small class="text-muted d-block">{{ d.nombre }}</small>
+          <strong>{{ d.total|cop }}</strong>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- FORMULARIO DE CIERRE Y CUADRE DE CAJA -->
+  <div class="kfp-tarjeta mb-4 shadow-sm" style="border: 2px solid var(--durazno);">
+    <div class="kfp-tarjeta-top">
+      <h2>Arqueo y Cierre del Turno</h2>
+      <small class="text-muted">Responsable: {{ caja_abierta.usuario.first_name|default:caja_abierta.usuario.username }}</small>
+    </div>
+    <p class="text-muted small">Cuenta el efectivo real que tienes en tu gaveta e ingresa los comprobantes recibidos para comparar contra el sistema.</p>
+    
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="cerrar_caja" value="1">
+      <div class="row g-3 mb-3">
+        <div class="col-md-4">
+          <label class="form-label fw-bold" for="{{ form_cierre.efectivo_cierre.id_for_label }}">Efectivo contado físicamente ($)</label>
+          {{ form_cierre.efectivo_cierre }}
+          <div class="small text-muted mt-1">El sistema espera: <b>{{ resumen_caja.esperado_efectivo|cop }}</b></div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="{{ form_cierre.nequi_cierre.id_for_label }}">Comprobantes Nequi ($)</label>
+          {{ form_cierre.nequi_cierre }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="{{ form_cierre.bancolombia_cierre.id_for_label }}">Comprobantes Bancolombia ($)</label>
+          {{ form_cierre.bancolombia_cierre }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="{{ form_cierre.daviplata_cierre.id_for_label }}">Comprobantes Daviplata ($)</label>
+          {{ form_cierre.daviplata_cierre }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="{{ form_cierre.datafono_cierre.id_for_label }}">Vouchers Datáfono Bold ($)</label>
+          {{ form_cierre.datafono_cierre }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="{{ form_cierre.link_cierre.id_for_label }}">Links de Pago ($)</label>
+          {{ form_cierre.link_cierre }}
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="{{ form_cierre.observaciones.id_for_label }}">Observaciones del cierre (opcional)</label>
+          {{ form_cierre.observaciones }}
+        </div>
+      </div>
+      <button type="submit" class="btn btn-danger rounded-pill px-4 py-2 d-inline-flex align-items-center gap-2" onclick="return confirm('¿Segura que deseas realizar el cierre y arqueo de caja de este turno?');">
+        <i class="ti ti-lock"></i> Realizar arqueo y cerrar caja
+      </button>
+    </form>
+  </div>
+  {% endif %}
+
+  <!-- HISTORIAL DE CIERRES -->
+  <div class="kfp-tarjeta">
+    <div class="kfp-tarjeta-top">
+      <h2>Histórico de Cierres de Caja</h2>
+      <span class="kfp-etiqueta">{{ cajas_anteriores|length }} cierre{{ cajas_anteriores|length|pluralize }}</span>
+    </div>
+    <div class="kfp-tabla-caja table-responsive">
+      <table class="kfp-tabla">
+        <thead>
+          <tr>
+            <th>Fecha y Hora</th>
+            <th>Cajera / Usuaria</th>
+            <th>Base inicial</th>
+            <th>Efectivo esperado</th>
+            <th>Efectivo contado</th>
+            <th>Diferencia</th>
+            <th>Digitales</th>
+            <th>Observaciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in cajas_anteriores %}
+          <tr>
+            <td>
+              <b>{{ c.fecha_cierre|date:"d M Y" }}</b><br>
+              <small class="text-muted">{{ c.fecha_apertura|date:"g:i a" }} - {{ c.fecha_cierre|date:"g:i a" }}</small>
+            </td>
+            <td>{{ c.usuario.first_name|default:c.usuario.username }}</td>
+            <td>{{ c.monto_apertura|cop }}</td>
+            <td>{{ c.sistema_efectivo|cop }}</td>
+            <td><b>{{ c.efectivo_cierre|cop }}</b></td>
+            <td>
+              {% if c.diferencia == 0 %}
+                <span class="badge bg-success">Exacta $0</span>
+              {% elif c.diferencia > 0 %}
+                <span class="badge bg-info text-dark">Sobrante +{{ c.diferencia|cop }}</span>
+              {% else %}
+                <span class="badge bg-danger">Faltante {{ c.diferencia|cop }}</span>
+              {% endif %}
+            </td>
+            <td>{{ c.sistema_digital|cop }}</td>
+            <td><small>{{ c.observaciones|default:"—" }}</small></td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8" class="vacio text-center py-4">Aún no hay cierres de caja registrados.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

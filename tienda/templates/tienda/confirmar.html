@@ -2,20 +2,43 @@
 {% block content %}
 {% include "tienda/_estilos.html" %}
 <style>
-  .kfp-confirmar { max-width: 620px; }
-  .kfp-objeto { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 26px; font-weight: 600; margin: 6px 0 14px; }
-  .kfp-btn-peligro { background: #a4161a; border-color: #a4161a; }
-  .kfp-btn-peligro:hover { background: #7f1013; }
-  .kfp-bloqueo { background: rgba(164, 22, 26, 0.08); border: 1px solid rgba(164, 22, 26, 0.25); color: #7f1013;
-                 border-radius: 12px; padding: 14px 16px; font-size: 13px; }
+  .kfp-confirmar {
+    max-width: 620px;
+  }
+
+  .kfp-objeto {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 26px;
+    font-weight: 600;
+    margin: 6px 0 14px;
+  }
+
+  .kfp-btn-peligro {
+    background: #a4161a;
+    border-color: #a4161a;
+  }
+
+  .kfp-btn-peligro:hover {
+    background: #7f1013;
+  }
+
+  .kfp-bloqueo {
+    background: rgba(164, 22, 26, 0.08);
+    border: 1px solid rgba(164, 22, 26, 0.25);
+    color: #7f1013;
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 13px;
+  }
 </style>
 
 <div class="kfp">
   {% if volver_url %}{% firstof volver_url as url_volver %}{% else %}{% url volver as url_volver %}{% endif %}
   {% if bloqueado %}
-    {% include "tienda/_encabezado.html" with titulo="No se puede eliminar" miga=que %}
+  {% include "tienda/_encabezado.html" with titulo="No se puede eliminar" miga=que %}
   {% else %}
-    {% include "tienda/_encabezado.html" with titulo="¿Seguro?" miga=que subtitulo="Revisa antes de confirmar: esta acción no se puede deshacer." %}
+  {% include "tienda/_encabezado.html" with titulo="¿Seguro?" miga=que subtitulo="Revisa antes de confirmar: esta acción
+  no se puede deshacer." %}
   {% endif %}
 
   <div class="kfp-tarjeta kfp-confirmar">
@@ -23,14 +46,16 @@
     <div class="kfp-objeto">{{ obj }}</div>
 
     {% if bloqueado %}
-      <div class="kfp-bloqueo">✋ {{ bloqueado }}</div>
-      <div class="d-flex gap-2 mt-3"><a class="kfp-btn kfp-btn-claro" href="{{ url_volver }}">← Volver</a></div>
+    <div class="kfp-bloqueo d-flex align-items-center gap-2"><i class="ti ti-hand-stop fs-5"></i> <span>{{ bloqueado
+        }}</span></div>
+    <div class="d-flex gap-2 mt-3"><a class="kfp-btn kfp-btn-claro" href="{{ url_volver }}"><i class="ti ti-arrow-left"></i> Volver</a></div>
     {% else %}
-      {% if aviso %}<div class="kfp-suave-caja" style="font-size:13px">⚠ {{ aviso }}</div>{% endif %}
-      <form method="post" class="d-flex gap-2 flex-wrap mt-3">{% csrf_token %}
-        <a class="kfp-btn kfp-btn-claro" href="{{ url_volver }}">Cancelar</a>
-        <button class="kfp-btn kfp-btn-peligro">{{ boton|default:"Sí, eliminar" }}</button>
-      </form>
+    {% if aviso %}<div class="kfp-suave-caja d-flex align-items-center gap-2" style="font-size:13px"><i class="ti ti-alert-triangle fs-5 text-warning"></i> <span>{{ aviso }}</span></div>{% endif %}
+    <form method="post" class="d-flex gap-2 flex-wrap mt-3">{% csrf_token %}
+      <a class="kfp-btn kfp-btn-claro" href="{{ url_volver }}"><i class="ti ti-x"></i> Cancelar</a>
+      <button type="submit" class="kfp-btn kfp-btn-peligro"><i class="ti ti-trash"></i> {{ boton|default:"Sí, eliminar"
+        }}</button>
+    </form>
     {% endif %}
   </div>
 </div>

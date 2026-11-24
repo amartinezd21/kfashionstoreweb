@@ -1,558 +1,232 @@
 {% extends "tienda/base.html" %}{% load tienda_extras %}
 {% block content %}
+{% include "tienda/_estilos.html" %}
 <style>
-  body {
-    background-color: #f7eed9 !important;
-    color: #5a0f2e;
-    font-family: 'Jost', sans-serif;
-  }
-
-  /* Barra superior / migas de pan y fecha */
-  .kf-header-bar {
+  .kfp-stat-card {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    font-family: 'Jost', sans-serif;
+    flex-direction: column;
+    gap: 6px;
+    height: 100%;
+    padding: 18px 20px;
   }
 
-  .kf-breadcrumb {
-    font-size: 13px;
-    color: #a87c74;
-  }
-
-  .kf-breadcrumb a {
-    color: #a87c74;
-    text-decoration: none;
-  }
-
-  .kf-header-meta {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .kf-header-date {
-    font-size: 13px;
-    color: #a87c74;
-  }
-
-  .kf-avatar-circle {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: #f9d5bc;
-    color: #5a0f2e;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    font-weight: 600;
-  }
-
-  /* Banner Principal / Hero */
-  .kf-hero-banner {
-    background: #feb99a;
-    border-radius: 16px;
-    padding: 22px 28px;
-    margin-bottom: 24px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 16px;
-    flex-wrap: wrap;
-  }
-
-  .kf-hero-title {
-    font-family: 'Cormorant Garamond', Georgia, serif;
-    font-size: 38px;
+  .kfp-stat-number {
+    font-size: clamp(22px, 2vw, 30px);
     font-weight: 600;
     line-height: 1.15;
-    color: #5a0f2e;
-    margin: 0 0 6px 0;
+    color: var(--vino);
   }
 
-  .kf-hero-subtitle {
-    font-size: 14px;
-    color: rgba(90, 15, 46, 0.85);
-    margin: 0;
+  .kfp-stat-label {
+    font-size: 12.5px;
+    color: var(--suave);
   }
 
-  .kf-banner-actions {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-
-  .btn-kf-entrada {
-    background: #faede2;
-    color: #5a0f2e;
-    border: 1px solid #d4a999;
-    border-radius: 50px;
-    padding: 9px 20px;
-    font-size: 13px;
-    font-weight: 600;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    transition: background 0.2s;
-    white-space: nowrap;
-  }
-
-  .btn-kf-entrada:hover {
-    background: #f5dfcf;
-    color: #5a0f2e;
-  }
-
-  .btn-kf-nueva-prenda {
-    background: #5a0f2e;
-    color: #f7eed9;
-    border-radius: 50px;
-    padding: 9px 24px;
-    font-size: 13px;
-    font-weight: 600;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    transition: background 0.2s;
-    white-space: nowrap;
-    border: none;
-  }
-
-  .btn-kf-nueva-prenda:hover {
-    background: #440921;
-    color: #f7eed9;
-  }
-
-  /* Tarjetas resumen (Stat Cards) */
-  .kf-stat-card {
-    background: #faede2;
-    border: 1px solid #ebd2c1;
-    border-radius: 14px;
-    padding: 16px 20px;
-    height: 100%;
-    display: flex;
-    align-items: baseline;
-    gap: 10px;
-  }
-
-  .kf-stat-number {
-    font-family: 'Cormorant Garamond', Georgia, serif;
-    font-size: 28px;
-    font-weight: 600;
-    color: #5a0f2e;
-    line-height: 1.1;
-  }
-
-  .kf-stat-label {
-    font-size: 12px;
-    color: #8a5a4c;
-    line-height: 1.2;
-  }
-
-  /* Tarjeta contenedora de Inventario */
-  .kf-card {
-    background: #f7eed9;
-    border: 1px solid #ebd2c1;
-    border-radius: 18px;
-    padding: 26px 28px;
-    margin-bottom: 24px;
-  }
-
-  /* Barra de búsqueda y categorías */
-  .kf-search-wrapper {
+  .kfp-search-box {
     position: relative;
+    flex: 1 1 280px;
     max-width: 420px;
-    flex-grow: 1;
   }
 
-  .kf-search-input {
-    width: 100%;
-    height: 42px;
-    border-radius: 12px;
-    border: 1px solid #ebd2c1;
-    background: #fbf6ee;
-    padding: 8px 16px 8px 38px;
-    font-family: 'Jost', sans-serif;
-    font-size: 13px;
-    color: #5a0f2e;
-    outline: none;
-    transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
-  }
-
-  .kf-search-input::placeholder {
-    color: #b5928a;
-  }
-
-  .kf-search-input:focus {
-    border-color: #5a0f2e;
-    background: #ffffff;
-    box-shadow: 0 0 0 3px rgba(90, 15, 46, 0.12);
-  }
-
-  .kf-search-icon {
+  .kfp-search-box .ti-search {
     position: absolute;
-    left: 12px;
-    top: 13px;
-    color: #a87c74;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--suave);
     pointer-events: none;
   }
 
-  .btn-kf-todas {
-    background: #5a0f2e;
-    color: #f7eed9;
-    border-radius: 50px;
-    padding: 8px 20px;
-    font-size: 12px;
-    font-weight: 600;
+  .kfp-search-box input {
+    padding-left: 38px;
+  }
+
+  .kfp-btn-edit {
+    background: #fff;
+    border: 1px solid rgba(90, 15, 46, 0.22);
+    border-radius: 100px;
+    padding: 4px 10px;
+    font-size: 11.5px;
+    color: var(--vino);
     text-decoration: none;
-    white-space: nowrap;
-    border: none;
-    transition: background 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.15s ease;
   }
 
-  .btn-kf-todas:hover {
-    background: #440921;
-    color: #f7eed9;
+  .kfp-btn-edit:hover {
+    background: var(--durazno);
+    border-color: var(--vino);
   }
 
-  /* Pills de Categoría */
-  .kf-category-pills {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 14px;
-    margin-bottom: 22px;
-  }
-
-  .kf-cat-filter {
-    display: inline-block;
-    padding: 5px 16px;
-    border-radius: 50px;
-    font-size: 12px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-    user-select: none;
-    border: 1px solid #ebd2c1;
-    background: #fbf6ee;
-    color: #5a0f2e;
-    text-decoration: none;
-  }
-
-  .kf-cat-filter:hover, .kf-cat-filter.active {
-    background: #5a0f2e;
-    color: #f7eed9;
-    border-color: #5a0f2e;
-  }
-
-  /* Tabla de Inventario */
-  .kf-table-wrapper {
-    overflow-x: auto;
-  }
-
-  .kf-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    margin: 0;
-  }
-
-  .kf-table thead tr {
-    background: #fdbda0;
-  }
-
-  .kf-table th {
-    padding: 12px 16px;
-    font-size: 12px;
-    font-weight: 600;
-    color: #723b36;
-    border: none;
-    white-space: nowrap;
-  }
-
-  .kf-table th:first-child {
-    border-top-left-radius: 10px;
-    border-bottom-left-radius: 10px;
-  }
-
-  .kf-table th:last-child {
-    border-top-right-radius: 10px;
-    border-bottom-right-radius: 10px;
-  }
-
-  .kf-table tbody tr {
-    border-bottom: 1px solid rgba(235, 210, 193, 0.45);
-  }
-
-  .kf-table tbody tr:last-child {
-    border-bottom: none;
-  }
-
-  .kf-table td {
-    padding: 14px 16px;
-    font-size: 13px;
-    color: #5a0f2e;
-    vertical-align: middle;
-    border: none;
-  }
-
-  /* Indicador de Color */
-  .kf-color-dot {
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    margin-right: 6px;
-    vertical-align: middle;
-    border: 1px solid rgba(0, 0, 0, 0.15);
-  }
-
-  /* Badges de Estado */
-  .kf-badge {
-    display: inline-block;
-    padding: 4px 14px;
-    border-radius: 50px;
-    font-size: 11px;
-    font-weight: 600;
-    text-align: center;
-  }
-
-  .kf-badge-bien {
-    background: #faede2;
-    color: #5a0f2e;
-  }
-
-  .kf-badge-reponer {
-    background: #fad3ba;
-    color: #702e3b;
-  }
-
-  .kf-badge-agotado {
-    background: #ebd2cc;
-    color: #8c1d30;
-  }
-
-  /* Botones de edición rápida */
-  .btn-kf-edit {
-    background: transparent;
-    border: 1px solid #ebd2c1;
-    color: #8a5a4c;
-    border-radius: 50px;
-    padding: 3px 10px;
-    font-size: 11px;
-    font-weight: 500;
-    text-decoration: none;
-    transition: all 0.2s;
-  }
-
-  .btn-kf-edit:hover {
-    border-color: #5a0f2e;
-    color: #5a0f2e;
-  }
-
-  /* Acciones de administración secundarias */
-  .kf-admin-links {
-    display: flex;
-    gap: 8px;
-    margin-top: 14px;
-  }
-
-  .kf-link-muted {
-    font-size: 12px;
-    color: #8a5a4c;
-    text-decoration: none;
-    padding: 3px 10px;
-    border-radius: 20px;
-    border: 1px solid #ebd2c1;
-  }
-
-  .kf-link-muted:hover {
-    color: #5a0f2e;
-    border-color: #5a0f2e;
+  .kfp-btn-edit-del:hover {
+    background: #fbe4e4;
+    border-color: #a4161a;
+    color: #a4161a !important;
   }
 </style>
 
-<div class="kf-inventario-page">
-  <!-- Barra superior con breadcrumb, fecha y avatar -->
-  <div class="kf-header-bar">
-    <div class="kf-breadcrumb">
-      <span>Mi boutique</span> / <span>Inventario</span>
-    </div>
-    <div class="kf-header-meta">
-      <span class="kf-header-date">{% now "j \d\e F \d\e Y"|lower %}</span>
-      <div class="kf-avatar-circle" title="K Fashion Store">K</div>
-    </div>
+<div class="kfp">
+  <div class="kfp-contexto">
+    <span class="d-inline-flex align-items-center gap-2 flex-wrap">
+      <button type="button" class="kfp-btn-back no-print" onclick="kfVolverAtras('{% url 'dashboard' %}')" title="Volver atrás" aria-label="Volver atrás">
+        <i class="ti ti-arrow-left"></i>
+      </button>
+      <span><a href="{% url 'dashboard' %}"><i class="ti ti-home"></i> Mi boutique</a> / Inventario</span>
+    </span>
+    <span class="kfp-contexto-derecha">
+      <span><i class="ti ti-calendar"></i> {% now "j \d\e F \d\e Y" as hoy_txt %}{{ hoy_txt|lower }}</span>
+      <span class="kfp-avatar">{{ user.first_name|default:user.username|first|upper }}</span>
+    </span>
   </div>
 
-  <!-- Banner principal -->
-  <div class="kf-hero-banner">
+  <div class="kfp-encabezado">
     <div>
-      <h1 class="kf-hero-title">Inventario</h1>
-      <p class="kf-hero-subtitle">Conoce qué tienes, qué se mueve y qué debes reponer.</p>
+      <h1 class="kfp-titulo">Inventario</h1>
+      <p class="kfp-subtitulo">Conoce qué tienes, qué se mueve y qué debes reponer.</p>
     </div>
-    {% if es_propietaria %}
-    <div class="kf-banner-actions">
-      <a class="btn-kf-entrada" href="{% url 'entrada_nueva' %}">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-          <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
-          <line x1="12" y1="22.08" x2="12" y2="12"></line>
-        </svg>
-        Entrada de mercancía
+    <div class="d-flex align-items-center gap-2 flex-wrap no-print">
+      <a class="kfp-btn kfp-btn-claro" style="height:40px;" href="{% url 'inventario_exportar' %}{% if q %}?q={{ q|urlencode }}{% endif %}">
+        <i class="ti ti-file-spreadsheet"></i> Excel
       </a>
-      <a class="btn-kf-nueva-prenda" href="{% url 'prenda_nueva' %}">+ Nueva prenda</a>
+      <a class="kfp-btn kfp-btn-claro" style="height:40px;" href="{% url 'inventario_exportar' %}?{% if q %}q={{ q|urlencode }}&{% endif %}formato=csv">
+        <i class="ti ti-download"></i> CSV
+      </a>
+      {% if es_propietaria %}
+      <a class="kfp-btn kfp-btn-durazno" style="height:40px;" href="{% url 'entrada_nueva' %}">
+        <i class="ti ti-package-import"></i> Entrada de mercancía
+      </a>
+      <a class="kfp-btn" style="height:40px;" href="{% url 'prenda_nueva' %}">
+        <i class="ti ti-plus"></i> Nueva prenda
+      </a>
+      {% endif %}
     </div>
-    {% endif %}
   </div>
 
-  <!-- 4 Tarjetas de resumen (Stat Cards) -->
+  <!-- 4 Tarjetas de resumen -->
   <div class="row g-3 mb-4">
-    <div class="col-sm-6 col-lg-3">
-      <div class="kf-stat-card">
-        <span class="kf-stat-number">{{ variantes|total_prendas }}</span>
-        <span class="kf-stat-label">Prendas en tienda</span>
+    <div class="col-6 col-lg-3">
+      <div class="kfp-tarjeta kfp-stat-card">
+        <span class="kfp-stat-number">{{ variantes|total_prendas }}</span>
+        <span class="kfp-stat-label"><i class="ti ti-hanger"></i> Prendas en tienda</span>
       </div>
     </div>
-    <div class="col-sm-6 col-lg-3">
-      <div class="kf-stat-card">
-        <span class="kf-stat-number">{{ variantes|length }}</span>
-        <span class="kf-stat-label">Variantes registradas</span>
+    <div class="col-6 col-lg-3">
+      <div class="kfp-tarjeta kfp-stat-card">
+        <span class="kfp-stat-number">{{ variantes|length }}</span>
+        <span class="kfp-stat-label"><i class="ti ti-palette"></i> Variantes registradas</span>
       </div>
     </div>
-    <div class="col-sm-6 col-lg-3">
-      <div class="kf-stat-card">
-        <span class="kf-stat-number">{{ variantes|total_reponer_count }}</span>
-        <span class="kf-stat-label">Variantes por reponer</span>
+    <div class="col-6 col-lg-3">
+      <div class="kfp-tarjeta kfp-stat-card">
+        <span class="kfp-stat-number">{{ variantes|total_reponer_count }}</span>
+        <span class="kfp-stat-label"><i class="ti ti-alert-triangle"></i> Variantes por reponer</span>
       </div>
     </div>
-    <div class="col-sm-6 col-lg-3">
-      <div class="kf-stat-card">
-        <span class="kf-stat-number">{{ variantes|total_costo_inventario|cop }}</span>
-        <span class="kf-stat-label">Valor al costo</span>
+    <div class="col-6 col-lg-3">
+      <div class="kfp-tarjeta kfp-stat-card">
+        <span class="kfp-stat-number">{{ variantes|total_costo_inventario|cop }}</span>
+        <span class="kfp-stat-label"><i class="ti ti-coins"></i> Valor al costo</span>
       </div>
     </div>
   </div>
 
-  <!-- Tarjeta Principal con Buscador, Filtros y Tabla -->
-  <div class="kf-card">
-    <!-- Fila de búsqueda y botón Todas las prendas -->
-    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-      <form method="get" class="kf-search-wrapper" id="formBusqueda">
-        <svg class="kf-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="11" cy="11" r="8"></circle>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-        </svg>
-        <input type="text" name="q" id="searchField" value="{{ q }}" class="kf-search-input" placeholder="Buscar por nombre o código">
+  <!-- Tarjeta Principal -->
+  <div class="kfp-tarjeta">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
+      <form method="get" class="kfp-search-box" id="formBusqueda">
+        <i class="ti ti-search"></i>
+        <input type="text" name="q" id="searchField" value="{{ q }}" class="form-control" placeholder="Buscar por nombre, código, color o talla...">
       </form>
-      <a href="{% url 'inventario' %}" class="btn-kf-todas">Todas las prendas</a>
+      <a href="{% url 'inventario' %}" class="kfp-btn kfp-btn-claro" style="height:38px; font-size:13px;">
+        Todas las prendas
+      </a>
     </div>
 
-    <!-- Filtros de categoría rápidos -->
-    <div class="kf-category-pills">
-      <a href="{% url 'inventario' %}" class="kf-cat-filter {% if not q %}active{% endif %}">Todos</a>
-      <a href="?q=Enterizo" class="kf-cat-filter {% if q == 'Enterizo' %}active{% endif %}">Enterizos</a>
-      <a href="?q=Camisa" class="kf-cat-filter {% if q == 'Camisa' %}active{% endif %}">Camisas</a>
-      <a href="?q=Conjunto" class="kf-cat-filter {% if q == 'Conjunto' %}active{% endif %}">Conjuntos</a>
-      <a href="?q=Vestido" class="kf-cat-filter {% if q == 'Vestido' %}active{% endif %}">Vestidos</a>
-      <a href="?q=Body" class="kf-cat-filter {% if q == 'Body' %}active{% endif %}">Bodys</a>
-      <a href="?q=Pantalon" class="kf-cat-filter {% if q == 'Pantalon' %}active{% endif %}">Pantalones</a>
-      <a href="?q=Falda" class="kf-cat-filter {% if q == 'Falda' %}active{% endif %}">Faldas</a>
+    <!-- Filtros rápidos -->
+    <div class="d-flex flex-wrap gap-2 mb-3 no-print">
+      <a href="{% url 'inventario' %}" class="kfp-pill {% if not q %}activa{% endif %}">Todos</a>
+      <a href="?q=Enterizo" class="kfp-pill {% if q == 'Enterizo' %}activa{% endif %}">Enterizos</a>
+      <a href="?q=Camisa" class="kfp-pill {% if q == 'Camisa' %}activa{% endif %}">Camisas</a>
+      <a href="?q=Conjunto" class="kfp-pill {% if q == 'Conjunto' %}activa{% endif %}">Conjuntos</a>
+      <a href="?q=Vestido" class="kfp-pill {% if q == 'Vestido' %}activa{% endif %}">Vestidos</a>
+      <a href="?q=Body" class="kfp-pill {% if q == 'Body' %}activa{% endif %}">Bodys</a>
+      <a href="?q=Pantalon" class="kfp-pill {% if q == 'Pantalon' %}activa{% endif %}">Pantalones</a>
+      <a href="?q=Falda" class="kfp-pill {% if q == 'Falda' %}activa{% endif %}">Faldas</a>
     </div>
 
-    <!-- Tabla de prendas -->
-    <div class="kf-table-wrapper">
-      <table class="kf-table">
+    <div class="kfp-tabla-caja">
+      <table class="kfp-tabla">
         <thead>
           <tr>
             <th>Prenda / código</th>
             <th>Categoría</th>
             <th>Color</th>
-            <th class="text-center">Por talla</th>
-            <th class="text-end">Costo</th>
-            <th class="text-end">Precio</th>
+            <th class="text-center">Talla / Stock</th>
+            <th class="derecha">Costo</th>
+            <th class="derecha">Precio</th>
             <th class="text-center">Margen</th>
             <th class="text-center">Estado</th>
-            {% if es_propietaria %}<th class="text-end"></th>{% endif %}
+            {% if es_propietaria %}<th class="derecha no-print">Acciones</th>{% endif %}
           </tr>
         </thead>
         <tbody>
           {% for x in variantes %}
           <tr>
-            <!-- Prenda y código -->
             <td>
               <strong>{{ x.prenda.nombre }}</strong><br>
-              <small class="text-muted">{{ x.prenda.codigo }}</small>
+              <small>{{ x.prenda.codigo }}</small>
             </td>
-
-            <!-- Categoría -->
             <td>{{ x.prenda.categoria.nombre }}</td>
-
-            <!-- Color con dot -->
             <td>
-              <span class="kf-color-dot" style="background-color: {{ x.color|color_hex }};"></span>
+              <span class="kfp-punto" style="background-color: {{ x.color|color_hex }};"></span>
               {{ x.color }}
             </td>
-
-            <!-- Talla y Stock -->
             <td class="text-center">
-              <span class="text-muted">{{ x.talla }}</span> &nbsp;<strong>{{ x.stock }}</strong>
+              <span class="kfp-talla">{{ x.talla }}</span> &nbsp;<strong>{{ x.stock }}</strong>
             </td>
-
-            <!-- Costo -->
-            <td class="text-end">{{ x.prenda.costo|cop }}</td>
-
-            <!-- Precio -->
-            <td class="text-end fw-bold">{{ x.prenda.precio_venta|cop }}</td>
-
-            <!-- Margen -->
+            <td class="derecha">{{ x.prenda.costo|cop }}</td>
+            <td class="derecha fw-bold">{{ x.prenda.precio_venta|cop }}</td>
             <td class="text-center">{{ x.prenda.margen }} %</td>
-
-            <!-- Estado -->
             <td class="text-center">
               {% if x.stock == 0 %}
-              <span class="kf-badge kf-badge-agotado">Agotado</span>
+              <span class="kfp-badge kfp-badge-peligro">Agotado</span>
               {% elif x.por_reponer %}
-              <span class="kf-badge kf-badge-reponer">Reponer</span>
+              <span class="kfp-badge kfp-badge-alerta">Reponer</span>
               {% else %}
-              <span class="kf-badge kf-badge-bien">Bien</span>
+              <span class="kfp-badge kfp-badge-exito">Bien</span>
               {% endif %}
             </td>
-
-            <!-- Acciones Propietaria -->
             {% if es_propietaria %}
-            <td class="text-end">
-              <a class="btn-kf-edit" href="{% url 'prenda_editar' x.prenda.pk %}" title="Editar prenda">Prenda</a>
-              <a class="btn-kf-edit" href="{% url 'variante_editar' x.pk %}" title="Editar variante">Mín.</a>
-              <a class="btn-kf-edit" href="{% url 'variante_eliminar' x.pk %}" title="Eliminar esta talla y color">Eliminar</a>
+            <td class="derecha no-print" style="white-space:nowrap;">
+              <a class="kfp-btn-edit" href="{% url 'prenda_editar' x.prenda.pk %}" title="Editar prenda"><i class="ti ti-shirt"></i> Prenda</a>
+              <a class="kfp-btn-edit" href="{% url 'variante_editar' x.pk %}" title="Editar mínimo y proveedor"><i class="ti ti-adjustments"></i> Mín.</a>
+              <a class="kfp-btn-edit kfp-btn-edit-del" style="color:#a4161a;" href="{% url 'variante_eliminar' x.pk %}" title="Eliminar esta talla y color"><i class="ti ti-trash"></i></a>
             </td>
             {% endif %}
           </tr>
           {% empty %}
           <tr>
-            <td colspan="9" class="text-center text-muted py-5">No hay prendas registradas con ese criterio.</td>
+            <td colspan="9" class="vacio">No hay prendas registradas con ese criterio.</td>
           </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
 
-    <!-- Pie de tabla informativo -->
-    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-4 pt-2 border-top" style="border-color: rgba(235, 210, 193, 0.45) !important;">
-      <span class="small text-muted">{{ variantes|total_prendas }} prendas disponibles en inventario</span>
-      <span class="small text-muted">Margen = (precio − costo) ÷ precio</span>
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3 pt-2 border-top" style="border-color: rgba(253, 189, 160, 0.55) !important;">
+      <span class="kfp-nota m-0">{{ variantes|total_prendas }} prendas disponibles en inventario</span>
+      <span class="kfp-nota m-0">Margen = (precio − costo) ÷ precio</span>
     </div>
 
-    <!-- Enlaces secundarios para propietaria -->
     {% if es_propietaria %}
-    <div class="kf-admin-links mt-3">
-      <a class="kf-link-muted" href="{% url 'variante_nueva' %}">+ Agregar talla y color</a>
-      <a class="kf-link-muted" href="{% url 'categoria_nueva' %}">+ Nueva categoría</a>
-      <a class="kf-link-muted" href="{% url 'categorias' %}">Ver categorías</a>
-      <a class="kf-link-muted" href="{% url 'reponer' %}">Ver prendas por reponer</a>
+    <div class="d-flex flex-wrap gap-3 mt-3 pt-2 no-print">
+      <a class="kfp-link" href="{% url 'variante_nueva' %}"><i class="ti ti-plus"></i> Agregar talla y color</a>
+      <a class="kfp-link" href="{% url 'categoria_nueva' %}"><i class="ti ti-plus"></i> Nueva categoría</a>
+      <a class="kfp-link" href="{% url 'categorias' %}"><i class="ti ti-tags"></i> Ver categorías</a>
+      <a class="kfp-link" href="{% url 'reponer' %}"><i class="ti ti-alert-triangle"></i> Ver prendas por reponer</a>
+      <a class="kfp-link" href="{% url 'mermas' %}"><i class="ti ti-package-off"></i> Mermas y Ajustes</a>
     </div>
     {% endif %}
   </div>
