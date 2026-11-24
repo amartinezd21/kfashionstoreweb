@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.models import User
 
 from .models import (Abono, Categoria, Cliente, EntradaMercancia, Gasto, Perfil, Prenda,
-                     Proveedor, Variante, Venta)
+                     Proveedor, Variante, Venta, CambioPrenda, Merma, Caja)
 
 
 class BootstrapMixin:
@@ -135,3 +135,81 @@ class VendedoraForm(BootstrapMixin, forms.Form):
         user = User.objects.create_user(d["username"], first_name=d["first_name"], password=d["password"])
         Perfil.objects.create(user=user, rol="vendedora", debe_cambiar_password=True)
         return user
+
+
+class CambioPrendaForm(BootstrapMixin, forms.ModelForm):
+    class Meta:
+        model = CambioPrenda
+        fields = ["variante_devuelta", "variante_nueva", "cantidad", "diferencia_precio", "motivo"]
+
+    def __init__(self, *args, venta=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.venta = venta
+        if venta:
+            # Solo permitir devolver prendas que formen parte de la venta
+            variantes_venta_ids = venta.detalles.values_list("variante_id", flat=True)
+            self.fields["variante_devuelta"].queryset = Variante.objects.filter(pk__in=variantes_venta_ids)
+        self.fields["variante_nueva"].queryset = Variante.objects.filter(prenda__activa=True, stock__gt=0).select_related("prenda")
+
+    def clean(self):
+        cleaned_data = super().clean()
+        nueva = cleaned_data.get("variante_nueva")
+        cant = cleaned_data.get("cantidad") or 1
+        devuelta = cleaned_data.get("variante_devuelta")
+
+        if nueva and cant > nueva.stock:
+            self.add_error("cantidad", f"No hay stock suficiente de {nueva} (quedan {nueva.stock}).")
+        if devuelta and nueva and devuelta == nueva:
+            self.add_error("variante_nueva", "La prenda nueva debe ser distinta a la que se devuelve (diferente talla, color o modelo).")
+        return cleaned_data
+
+
+class MermaForm(BootstrapMixin, forms.ModelForm):
+    class Meta:
+        model = Merma
+        fields = ["variante", "tipo", "cantidad", "motivo"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["variante"].queryset = Variante.objects.filter(prenda__activa=True, stock__gt=0).select_related("prenda")
+
+    def clean_cantidad(self):
+        cant = self.cleaned_data["cantidad"]
+        variante = self.cleaned_data.get("variante")
+        if variante and cant > variante.stock:
+            raise forms.ValidationError(f"Solo hay {variante.stock} unidades en inventario para dar de baja.")
+        return cant
+
+
+class AperturaCajaForm(BootstrapMixin, forms.ModelForm):
+    class Meta:
+        model = Caja
+        fields = ["monto_apertura"]
+        labels = {"monto_apertura": "Base en efectivo inicial ($)"}
+
+
+class CierreCajaForm(BootstrapMixin, forms.ModelForm):
+    class Meta:
+        model = Caja
+        fields = [
+            "efectivo_cierre",
+            "nequi_cierre",
+            "bancolombia_cierre",
+            "daviplata_cierre",
+            "datafono_cierre",
+            "link_cierre",
+            "observaciones",
+        ]
+        labels = {
+            "efectivo_cierre": "Efectivo físico en caja ($)",
+            "nequi_cierre": "Total recibido en Nequi ($)",
+            "bancolombia_cierre": "Total recibido en Bancolombia ($)",
+            "daviplata_cierre": "Total recibido en Daviplata ($)",
+            "datafono_cierre": "Total vouchers Datáfono Bold ($)",
+            "link_cierre": "Total recibido en Link de pago ($)",
+            "observaciones": "Observaciones / Notas del cierre",
+        }
+        widgets = {
+            "observaciones": forms.Textarea(attrs={"rows": 2}),
+        }
+

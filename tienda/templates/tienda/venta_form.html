@@ -2,36 +2,201 @@
 {% block content %}
 {% include "tienda/_estilos.html" %}
 <style>
-  .kfp-encabezado-venta { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
-  .kfp-lineas td { padding: 8px; }
-  .kfp-lineas .form-select { min-width: 220px; }
-  .kfp-lineas input { width: 90px; }
-  .kfp-lineas .precio { width: 130px; }
-  .kfp-quitar { background: none; border: none; color: var(--vino); font-size: 18px; line-height: 1; padding: 4px 8px; cursor: pointer; }
-  .kfp-agregar { background: none; border: none; color: var(--vino); font-size: 12px; padding: 10px 0 0; cursor: pointer; }
-  .kfp-agregar:hover { text-decoration: underline; }
-  .kfp-radios { display: flex; gap: 6px; flex-wrap: wrap; }
-  .kfp-radios input { position: absolute; opacity: 0; pointer-events: none; }
-  .kfp-radios label { margin: 0; color: var(--suave) !important; }
-  .kfp-radios input:checked + label { background: var(--vino); color: var(--crema) !important; font-weight: 500; }
-  .kfp-radios input:focus-visible + label { outline: 2px solid var(--vino); outline-offset: 2px; }
-  .kfp-chip { background: var(--crema); border: 1px solid var(--vino); border-radius: 100px; padding: 5px 10px; font-size: 11px; cursor: pointer; }
+  .kfp-encabezado-venta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .kfp-lineas td {
+    padding: 8px;
+  }
+
+  .kfp-lineas .form-select {
+    min-width: 220px;
+  }
+
+  .kfp-lineas input {
+    width: 90px;
+  }
+
+  .kfp-lineas .precio {
+    width: 130px;
+  }
+
+  .kfp-quitar {
+    background: none;
+    border: none;
+    color: var(--vino);
+    font-size: 18px;
+    line-height: 1;
+    padding: 4px 8px;
+    cursor: pointer;
+  }
+
+  .kfp-agregar {
+    background: none;
+    border: none;
+    color: var(--vino);
+    font-size: 12px;
+    padding: 10px 0 0;
+    cursor: pointer;
+  }
+
+  .kfp-agregar:hover {
+    text-decoration: underline;
+  }
+
+  .kfp-radios {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .kfp-radios input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .kfp-radios label {
+    margin: 0;
+    color: var(--suave) !important;
+  }
+
+  .kfp-radios input:checked+label {
+    background: var(--vino);
+    color: var(--crema) !important;
+    font-weight: 500;
+  }
+
+  .kfp-radios input:focus-visible+label {
+    outline: 2px solid var(--vino);
+    outline-offset: 2px;
+  }
+
+  .kfp-chip {
+    background: var(--crema);
+    border: 1px solid var(--vino);
+    border-radius: 100px;
+    padding: 5px 10px;
+    font-size: 11px;
+    cursor: pointer;
+  }
 
   /* Vista previa del recibo */
-  .kfp-recibo { position: sticky; top: 16px; }
-  .kfp-recibo-marca { text-align: center; border-bottom: 1px solid var(--durazno); padding-bottom: 12px; margin-bottom: 12px; }
-  .kfp-recibo-marca small { font-size: 11px; color: var(--suave); display: block; }
-  .kfp-recibo-marca .kfp-num { font-size: 28px; display: block; margin: 4px 0; }
-  .kfp-recibo-fila { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; padding: 4px 0; }
-  .kfp-recibo-fila span:first-child { color: var(--suave); }
-  .kfp-recibo-sep { border-top: 1px solid var(--durazno); margin: 10px 0; }
-  .kfp-recibo-total .kfp-num { font-size: 30px; }
-  .kfp-recibo-gracias { text-align: center; font-family: 'Cormorant Garamond', Georgia, serif; font-size: 20px; margin-top: 12px; }
+  .kfp-recibo {
+    position: sticky;
+    top: 16px;
+  }
+
+  .kfp-recibo-marca {
+    text-align: center;
+    border-bottom: 1px solid var(--durazno);
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+  }
+
+  .kfp-recibo-marca small {
+    font-size: 11px;
+    color: var(--suave);
+    display: block;
+  }
+
+  .kfp-recibo-marca .kfp-num {
+    font-size: 28px;
+    display: block;
+    margin: 4px 0;
+  }
+
+  .kfp-recibo-fila {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 13px;
+    padding: 4px 0;
+  }
+
+  .kfp-recibo-fila span:first-child {
+    color: var(--suave);
+  }
+
+  .kfp-recibo-sep {
+    border-top: 1px solid var(--durazno);
+    margin: 10px 0;
+  }
+
+  .kfp-recibo-total .kfp-num {
+    font-size: 30px;
+  }
+
+  .kfp-recibo-gracias {
+    text-align: center;
+    font-family: 'Jost', sans-serif;
+    font-size: 20px;
+    margin-top: 12px;
+  }
+
+  /* Buscador POS y autocompletado */
+  .kfp-pos-search {
+    border: 1px solid var(--durazno);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 14px;
+    width: 100%;
+    transition: all 0.2s ease;
+  }
+
+  .kfp-pos-search:focus {
+    outline: none;
+    border-color: var(--vino);
+    box-shadow: 0 0 0 3px rgba(125, 31, 57, 0.15);
+  }
+
+  .kfp-pos-sug {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 1050;
+    background: #fff;
+    border: 1px solid var(--durazno);
+    border-radius: 8px;
+    max-height: 260px;
+    overflow-y: auto;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  }
+
+  .kfp-pos-item {
+    padding: 10px 14px;
+    cursor: pointer;
+    border-bottom: 1px solid #f5ede6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.15s;
+  }
+
+  .kfp-pos-item:hover,
+  .kfp-pos-item.activo {
+    background: #fcf6f2;
+  }
+
+  .kfp-pos-item:last-child {
+    border-bottom: none;
+  }
 </style>
 
 <div class="kfp">
   <div class="kfp-contexto">
-    <span><a href="{% url 'dashboard' %}">Mi boutique</a> / Nueva venta</span>
+    <span class="d-inline-flex align-items-center gap-2 flex-wrap">
+      <button type="button" class="kfp-btn-back no-print" onclick="kfVolverAtras('{% url 'ventas' %}')" title="Volver atrás" aria-label="Volver atrás">
+        <i class="ti ti-arrow-left"></i>
+      </button>
+      <span><a href="{% url 'dashboard' %}"><i class="ti ti-home"></i> Mi boutique</a> / Nueva venta</span>
+    </span>
     <span class="kfp-contexto-derecha">
       <span>{% now "j \d\e F \d\e Y" as hoy_txt %}{{ hoy_txt|lower }}</span>
       <span class="kfp-avatar">{{ user.first_name|default:user.username|first|upper }}</span>
@@ -42,137 +207,345 @@
       <h1 class="kfp-titulo">Nueva venta</h1>
       <p class="kfp-subtitulo">Una nueva compra, todo en su lugar.</p>
     </div>
-    <button class="kfp-btn" type="submit" form="form-venta">✓ Guardar venta</button>
+    <button class="kfp-btn" type="submit" form="form-venta"><i class="ti ti-check"></i> Guardar venta</button>
   </div>
 
   {% if form.non_field_errors %}<div class="kfp-suave-caja mb-3 kfp-error">{{ form.non_field_errors }}</div>{% endif %}
 
   <form method="post" enctype="multipart/form-data" id="form-venta">{% csrf_token %}
-  <div class="row g-3">
-    <div class="col-xl-7">
-      <div class="kfp-tarjeta mb-3">
-        <div class="row g-3">
-          <div class="col-md-7">
-            <label for="{{ form.cliente.id_for_label }}">Clienta</label>
-            {{ form.cliente }}
-            {% for e in form.cliente.errors %}<div class="kfp-error">{{ e }}</div>{% endfor %}
-            <div class="kfp-nota">¿Es nueva? <a href="{% url 'cliente_nuevo' %}" class="kfp-link">Regístrala aquí</a> y vuelve a la venta.</div>
-          </div>
-          <div class="col-md-5">
-            <label for="{{ form.canal.id_for_label }}">Canal de venta</label>
-            {{ form.canal }}
-            {% for e in form.canal.errors %}<div class="kfp-error">{{ e }}</div>{% endfor %}
+    <div class="row g-3">
+      <div class="col-xl-7">
+        <div class="kfp-tarjeta mb-3">
+          <div class="row g-3">
+            <div class="col-md-7">
+              <label for="{{ form.cliente.id_for_label }}">Clienta</label>
+              {{ form.cliente }}
+              {% for e in form.cliente.errors %}<div class="kfp-error">{{ e }}</div>{% endfor %}
+              <div class="kfp-nota">¿Es nueva? <a href="{% url 'cliente_nuevo' %}" class="kfp-link">Regístrala aquí</a>
+                y vuelve a la venta.</div>
+            </div>
+            <div class="col-md-5">
+              <label for="{{ form.canal.id_for_label }}">Canal de venta</label>
+              {{ form.canal }}
+              {% for e in form.canal.errors %}<div class="kfp-error">{{ e }}</div>{% endfor %}
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="kfp-tarjeta mb-3">
-        <div class="kfp-tarjeta-top"><h2>Prendas</h2></div>
-        <div class="kfp-tabla-caja table-responsive">
-          <table class="kfp-tabla kfp-lineas" id="lineas">
-            <thead><tr><th>Prenda · talla · color</th><th>Quedan</th><th>Cant.</th><th>Precio</th><th></th></tr></thead>
-            <tbody></tbody>
-          </table>
+        <div class="kfp-tarjeta mb-3">
+          <div class="kfp-tarjeta-top">
+            <h2>Prendas</h2>
+            <small class="text-muted">Tip: Escanea o presiona Enter para agregar rápido</small>
+          </div>
+
+          <!-- Buscador ágil en vivo y lector de código de barras -->
+          <div class="position-relative mb-3">
+            <div class="position-relative d-flex align-items-center">
+              <i class="ti ti-barcode position-absolute"
+                style="left:14px; font-size:18px; color:var(--vino); opacity:0.75; pointer-events:none;"></i>
+              <input type="text" id="buscador-pos" class="kfp-pos-search" style="padding-left:40px;"
+                placeholder="Escanear código (ej: KF-0001) o escribir nombre, color o talla..." autocomplete="off"
+                aria-label="Buscar prenda o escanear código de barras">
+            </div>
+            <div id="sugerencias-pos" class="kfp-pos-sug" style="display: none;"></div>
+          </div>
+
+          <div class="kfp-tabla-caja table-responsive">
+            <table class="kfp-tabla kfp-lineas" id="lineas">
+              <thead>
+                <tr>
+                  <th>Prenda · talla · color</th>
+                  <th>Quedan</th>
+                  <th>Cant.</th>
+                  <th>Precio</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <button type="button" id="agregar" class="kfp-agregar">+ Agregar prenda manualmente</button>
         </div>
-        <button type="button" id="agregar" class="kfp-agregar">+ Agregar prenda</button>
-      </div>
 
-      <div class="kfp-tarjeta">
-        <div class="kfp-tarjeta-top">
-          <h2>Pago</h2>
-          <div class="kfp-selector kfp-radios">
-            {% for valor, nombre in form.fields.modalidad.choices %}
-            <input type="radio" name="modalidad" id="modalidad_{{ valor }}" value="{{ valor }}" {% if form.modalidad.value == valor %}checked{% endif %}>
-            <label class="kfp-pill" for="modalidad_{{ valor }}">{{ nombre }}</label>
+        <div class="kfp-tarjeta">
+          <div class="kfp-tarjeta-top">
+            <h2>Pago</h2>
+            <div class="kfp-selector kfp-radios">
+              {% for valor, nombre in form.fields.modalidad.choices %}
+              <input type="radio" name="modalidad" id="modalidad_{{ valor }}" value="{{ valor }}" {% if form.modalidad.value == valor %}checked{% endif %}>
+              <label class="kfp-pill" for="modalidad_{{ valor }}">{{ nombre }}</label>
+              {% endfor %}
+            </div>
+          </div>
+          {% for e in form.modalidad.errors %}<div class="kfp-error">{{ e }}</div>{% endfor %}
+
+          <label class="d-block">Medio de pago</label>
+          <div class="kfp-radios mb-3">
+            {% for valor, nombre in form.fields.medio_pago.choices %}
+            <input type="radio" name="medio_pago" id="medio_{{ valor }}" value="{{ valor }}" {% if form.medio_pago.value == valor %}checked{% endif %}>
+            <label class="kfp-pill" for="medio_{{ valor }}">{{ nombre }}</label>
             {% endfor %}
           </div>
-        </div>
-        {% for e in form.modalidad.errors %}<div class="kfp-error">{{ e }}</div>{% endfor %}
+          {% for e in form.medio_pago.errors %}<div class="kfp-error">{{ e }}</div>{% endfor %}
 
-        <label class="d-block">Medio de pago</label>
-        <div class="kfp-radios mb-3">
-          {% for valor, nombre in form.fields.medio_pago.choices %}
-          <input type="radio" name="medio_pago" id="medio_{{ valor }}" value="{{ valor }}" {% if form.medio_pago.value == valor %}checked{% endif %}>
-          <label class="kfp-pill" for="medio_{{ valor }}">{{ nombre }}</label>
-          {% endfor %}
-        </div>
-        {% for e in form.medio_pago.errors %}<div class="kfp-error">{{ e }}</div>{% endfor %}
-
-        <div class="row g-3">
-          <div class="col-md-4 solo-credito">
-            <label for="abono_inicial">Abono inicial</label>
-            <input type="number" name="abono_inicial" id="abono_inicial" min="0" class="form-control" placeholder="$ 0">
-          </div>
-          <div class="col-md-4 solo-credito">
-            <label>Saldo por pagar</label>
-            <div class="form-control d-flex align-items-center" id="saldo">$ 0</div>
-          </div>
-          <div class="col-md-4 solo-credito">
-            <label for="{{ form.fecha_limite.id_for_label }}">Fecha límite</label>
-            {{ form.fecha_limite }}
-            {% for e in form.fecha_limite.errors %}<div class="kfp-error">{{ e }}</div>{% endfor %}
-          </div>
-          <div class="col-12">
-            <label for="{{ form.comprobante.id_for_label }}">Foto del comprobante (opcional)</label>
-            {{ form.comprobante }}
-            {% for e in form.comprobante.errors %}<div class="kfp-error">{{ e }}</div>{% endfor %}
+          <div class="row g-3">
+            <div class="col-md-4 solo-credito">
+              <label for="abono_inicial">Abono inicial</label>
+              <input type="number" name="abono_inicial" id="abono_inicial" min="0" class="form-control"
+                placeholder="$ 0">
+            </div>
+            <div class="col-md-4 solo-credito">
+              <label>Saldo por pagar</label>
+              <div class="form-control d-flex align-items-center" id="saldo">$ 0</div>
+            </div>
+            <div class="col-md-4 solo-credito">
+              <label for="{{ form.fecha_limite.id_for_label }}">Fecha límite</label>
+              {{ form.fecha_limite }}
+              {% for e in form.fecha_limite.errors %}<div class="kfp-error">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-12">
+              <label for="{{ form.comprobante.id_for_label }}">Foto del comprobante (opcional)</label>
+              {{ form.comprobante }}
+              {% for e in form.comprobante.errors %}<div class="kfp-error">{{ e }}</div>{% endfor %}
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <div class="col-xl-5">
-      <div class="kfp-tarjeta kfp-recibo">
-        <div class="kfp-recibo-marca">
-          <small>Vista previa del recibo</small>
-          <span class="kfp-num">K Fashion Store</span>
-          <small>Moda casual para mujeres reales · Cartagena, Colombia</small>
+      <div class="col-xl-5">
+        <div class="kfp-tarjeta kfp-recibo">
+          <div class="kfp-recibo-marca">
+            <small>Vista previa del recibo</small>
+            <span class="kfp-num">K Fashion Store</span>
+            <small>Moda casual para mujeres reales · Cartagena, Colombia</small>
+          </div>
+          <div class="kfp-recibo-fila"><span>Fecha</span><b>{% now "j M Y · g:i a" %}</b></div>
+          <div class="kfp-recibo-fila"><span>Clienta</span><b id="prev-clienta">Mostrador</b></div>
+          <div class="kfp-recibo-sep"></div>
+          <div id="prev-lineas">
+            <div class="kfp-recibo-fila"><span>Aún no hay prendas</span></div>
+          </div>
+          <div class="kfp-recibo-sep"></div>
+          <div class="kfp-recibo-fila kfp-recibo-total align-items-center"><span>Total</span><span class="kfp-num"
+              id="total">$ 0</span></div>
+          <div class="kfp-recibo-fila solo-credito"><span>Abono inicial</span><b id="prev-abono">$ 0</b></div>
+          <div class="kfp-recibo-fila solo-credito"><span>Saldo a crédito</span><b id="prev-saldo">$ 0</b></div>
+          <div class="kfp-recibo-gracias">Gracias por tu compra</div>
         </div>
-        <div class="kfp-recibo-fila"><span>Fecha</span><b>{% now "j M Y · g:i a" %}</b></div>
-        <div class="kfp-recibo-fila"><span>Clienta</span><b id="prev-clienta">Mostrador</b></div>
-        <div class="kfp-recibo-sep"></div>
-        <div id="prev-lineas"><div class="kfp-recibo-fila"><span>Aún no hay prendas</span></div></div>
-        <div class="kfp-recibo-sep"></div>
-        <div class="kfp-recibo-fila kfp-recibo-total align-items-center"><span>Total</span><span class="kfp-num" id="total">$ 0</span></div>
-        <div class="kfp-recibo-fila solo-credito"><span>Abono inicial</span><b id="prev-abono">$ 0</b></div>
-        <div class="kfp-recibo-fila solo-credito"><span>Saldo a crédito</span><b id="prev-saldo">$ 0</b></div>
-        <div class="kfp-recibo-gracias">Gracias por tu compra</div>
       </div>
     </div>
-  </div>
   </form>
 </div>
 
 <template id="opciones">
   <option value="">— Escoge la prenda —</option>
-  {% for v in variantes %}<option value="{{ v.pk }}" data-precio="{{ v.prenda.precio_venta|unlocalize }}" data-stock="{{ v.stock }}">{{ v }}</option>{% endfor %}
+  {% for v in variantes %}
+  <option value="{{ v.pk }}" data-precio="{{ v.prenda.precio_venta|unlocalize }}" data-stock="{{ v.stock }}" data-codigo="{{ v.prenda.codigo|default:'' }}">{% if v.prenda.codigo %}[{{ v.prenda.codigo }}] {% endif %}{{ v }}</option>
+  {% endfor %}
 </template>
+
+<script id="datos-catalogo" type="application/json">
+[
+  {% for v in variantes %}
+  {
+    "id": {{ v.pk }},
+    "codigo": "{{ v.prenda.codigo|default:''|escapejs }}",
+    "nombre": "{{ v.prenda.nombre|escapejs }}",
+    "talla": "{{ v.talla|escapejs }}",
+    "color": "{{ v.color|escapejs }}",
+    "precio": {{ v.prenda.precio_venta|unlocalize }},
+    "stock": {{ v.stock }}
+  }{% if not forloop.last %},{% endif %}
+  {% endfor %}
+]
+</script>
 {% endblock %}
+
 {% block scripts %}
 <script>
   const cuerpo = document.querySelector('#lineas tbody');
   const opciones = document.getElementById('opciones').innerHTML;
+  const catalogo = JSON.parse(document.getElementById('datos-catalogo').textContent || '[]');
+  const buscador = document.getElementById('buscador-pos');
+  const sugerencias = document.getElementById('sugerencias-pos');
   const fmt = n => '$ ' + Math.round(n).toLocaleString('es-CO');
   const $ = id => document.getElementById(id);
 
-  function agregar() {
+  function agregar(varianteId = null) {
     const tr = document.createElement('tr');
     tr.innerHTML = '<td><select name="variante" class="form-select" aria-label="Prenda">' + opciones + '</select></td>' +
       '<td class="stock">—</td>' +
       '<td><input name="cantidad" type="number" min="1" value="1" class="form-control" aria-label="Cantidad"></td>' +
       '<td><input name="precio" type="number" min="0" step="1" class="form-control precio" aria-label="Precio"></td>' +
       '<td><button type="button" class="kfp-quitar" aria-label="Quitar prenda">×</button></td>';
+
     const sel = tr.querySelector('select'), cant = tr.querySelector('[name=cantidad]'), precio = tr.querySelector('[name=precio]');
+
     sel.onchange = () => {
       const o = sel.selectedOptions[0];
-      precio.value = o.dataset.precio || '';
-      tr.querySelector('.stock').textContent = o.dataset.stock || '—';
-      cant.max = o.dataset.stock || '';
+      precio.value = o ? (o.dataset.precio || '') : '';
+      tr.querySelector('.stock').textContent = o ? (o.dataset.stock || '—') : '—';
+      cant.max = o ? (o.dataset.stock || '') : '';
       actualizar();
     };
+
     tr.querySelector('button').onclick = () => { tr.remove(); actualizar(); };
     tr.addEventListener('input', actualizar);
     cuerpo.appendChild(tr);
+
+    if (varianteId) {
+      sel.value = String(varianteId);
+      sel.dispatchEvent(new Event('change'));
+    }
+    return tr;
+  }
+
+  function seleccionarOAgregar(varianteId) {
+    const vIdStr = String(varianteId);
+    let filaExistente = null;
+    let filaVacia = null;
+
+    cuerpo.querySelectorAll('tr').forEach(tr => {
+      const sel = tr.querySelector('select');
+      if (sel.value === vIdStr) {
+        filaExistente = tr;
+      } else if (!sel.value) {
+        filaVacia = tr;
+      }
+    });
+
+    if (filaExistente) {
+      const cantInput = filaExistente.querySelector('[name=cantidad]');
+      const maxStock = parseInt(cantInput.max, 10) || 999;
+      const actual = parseInt(cantInput.value, 10) || 1;
+      if (actual < maxStock) {
+        cantInput.value = actual + 1;
+        filaExistente.classList.add('table-warning');
+        setTimeout(() => filaExistente.classList.remove('table-warning'), 400);
+      }
+    } else if (filaVacia) {
+      const sel = filaVacia.querySelector('select');
+      sel.value = vIdStr;
+      sel.dispatchEvent(new Event('change'));
+    } else {
+      agregar(varianteId);
+    }
+
+    actualizar();
+    if (buscador) {
+      buscador.value = '';
+      sugerencias.style.display = 'none';
+      buscador.focus();
+    }
+  }
+
+  function normalizar(texto) {
+    return (texto || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+  }
+
+  function buscarEnCatalogo(termino) {
+    const q = normalizar(termino);
+    if (!q) return [];
+    return catalogo.filter(v => {
+      const cod = normalizar(v.codigo);
+      const nom = normalizar(v.nombre);
+      const col = normalizar(v.color);
+      const tal = normalizar(v.talla);
+      return cod.includes(q) || nom.includes(q) || col.includes(q) || tal.includes(q);
+    });
+  }
+
+  function renderizarSugerencias(resultados) {
+    if (!resultados.length) {
+      sugerencias.innerHTML = '<div class="p-3 text-muted text-center" style="font-size:13px;">No se encontraron prendas con stock disponible.</div>';
+      sugerencias.style.display = 'block';
+      return;
+    }
+
+    let html = '';
+    resultados.slice(0, 10).forEach((v, idx) => {
+      html += `
+        <div class="kfp-pos-item ${idx === 0 ? 'activo' : ''}" data-id="${v.id}">
+          <div>
+            <strong>${v.codigo ? '[' + v.codigo + '] ' : ''}${v.nombre}</strong>
+            <span class="badge bg-light text-dark ms-1">Talla: ${v.talla}</span>
+            <span class="badge bg-light text-dark ms-1">Color: ${v.color}</span>
+            <small class="text-muted ms-2">(Quedan: ${v.stock})</small>
+          </div>
+          <div>
+            <span class="fw-bold" style="color: var(--vino);">${fmt(v.precio)}</span>
+          </div>
+        </div>
+      `;
+    });
+    sugerencias.innerHTML = html;
+    sugerencias.style.display = 'block';
+
+    sugerencias.querySelectorAll('.kfp-pos-item').forEach(el => {
+      el.onclick = () => {
+        seleccionarOAgregar(el.dataset.id);
+      };
+    });
+  }
+
+  if (buscador) {
+    buscador.addEventListener('input', () => {
+      const q = buscador.value.trim();
+      if (q.length < 1) {
+        sugerencias.style.display = 'none';
+        return;
+      }
+      const matches = buscarEnCatalogo(q);
+      renderizarSugerencias(matches);
+    });
+
+    buscador.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const q = buscador.value.trim();
+        if (!q) return;
+
+        // Coincidencia exacta por código KF-XXXX
+        const matchExactoCod = catalogo.find(v => normalizar(v.codigo) === normalizar(q));
+        if (matchExactoCod) {
+          seleccionarOAgregar(matchExactoCod.id);
+          return;
+        }
+
+        const matches = buscarEnCatalogo(q);
+        if (matches.length > 0) {
+          // Si hay sugerencia activa o la primera
+          const activa = sugerencias.querySelector('.kfp-pos-item.activo') || sugerencias.querySelector('.kfp-pos-item');
+          if (activa) {
+            seleccionarOAgregar(activa.dataset.id);
+          } else {
+            seleccionarOAgregar(matches[0].id);
+          }
+        }
+      } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        const items = Array.from(sugerencias.querySelectorAll('.kfp-pos-item'));
+        if (!items.length) return;
+        e.preventDefault();
+        const idxActual = items.findIndex(el => el.classList.contains('activo'));
+        let nuevoIdx = 0;
+        if (e.key === 'ArrowDown') {
+          nuevoIdx = idxActual < items.length - 1 ? idxActual + 1 : 0;
+        } else {
+          nuevoIdx = idxActual > 0 ? idxActual - 1 : items.length - 1;
+        }
+        items.forEach(el => el.classList.remove('activo'));
+        items[nuevoIdx].classList.add('activo');
+        items[nuevoIdx].scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'Escape') {
+        sugerencias.style.display = 'none';
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!buscador.contains(e.target) && !sugerencias.contains(e.target)) {
+        sugerencias.style.display = 'none';
+      }
+    });
   }
 
   function esCredito() { return ($('modalidad_credito') || {}).checked; }
@@ -198,7 +571,7 @@
     document.querySelectorAll('.solo-credito').forEach(e => e.style.display = esCredito() ? '' : 'none');
   }
 
-  $('agregar').onclick = agregar;
+  $('agregar').onclick = () => agregar();
   document.querySelectorAll('[name=modalidad]').forEach(r => r.onchange = actualizar);
   $('abono_inicial').addEventListener('input', actualizar);
   $('{{ form.cliente.id_for_label }}').addEventListener('change', actualizar);

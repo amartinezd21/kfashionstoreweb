@@ -1,417 +1,101 @@
 {% extends "tienda/base.html" %}{% load tienda_extras %}
 {% block content %}
+{% include "tienda/_estilos.html" %}
 <style>
-  body {
-    background-color: #f7eed9 !important;
-    color: #5a0f2e;
-    font-family: 'Jost', sans-serif;
-  }
-
-  /* Barra superior / migas de pan y fecha */
-  .kf-header-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    font-family: 'Jost', sans-serif;
-  }
-
-  .kf-breadcrumb {
-    font-size: 13px;
-    color: #a87c74;
-  }
-
-  .kf-breadcrumb a {
-    color: #a87c74;
-    text-decoration: none;
-  }
-
-  .kf-header-meta {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .kf-header-date {
-    font-size: 13px;
-    color: #a87c74;
-  }
-
-  .kf-avatar-circle {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: #f9d5bc;
-    color: #5a0f2e;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    font-weight: 600;
-  }
-
-  /* Banner Principal / Hero */
-  .kf-hero-banner {
-    background: #feb99a;
-    border-radius: 16px;
-    padding: 22px 28px;
-    margin-bottom: 24px;
+  .kfp-total-prov {
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 16px;
     flex-wrap: wrap;
+    margin-bottom: 18px;
   }
 
-  .kf-hero-title {
-    font-family: 'Cormorant Garamond', Georgia, serif;
-    font-size: 38px;
-    font-weight: 600;
-    line-height: 1.15;
-    color: #5a0f2e;
-    margin: 0 0 6px 0;
-  }
-
-  .kf-hero-subtitle {
-    font-size: 14px;
-    color: rgba(90, 15, 46, 0.85);
-    margin: 0;
-  }
-
-  .btn-kf-nuevo-prov {
-    background: #5a0f2e;
-    color: #f7eed9;
-    border-radius: 50px;
-    padding: 9px 24px;
-    font-size: 13px;
-    font-weight: 600;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    transition: background 0.2s;
-    white-space: nowrap;
-    border: none;
-  }
-
-  .btn-kf-nuevo-prov:hover {
-    background: #440921;
-    color: #f7eed9;
-  }
-
-  /* Tarjeta Total de deuda */
-  .kf-total-card {
-    background: #faede2;
-    border: 1px solid #ebd2c1;
-    border-radius: 16px;
-    padding: 20px 24px;
-    margin-bottom: 24px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 12px;
-  }
-
-  .kf-total-label {
-    font-size: 13px;
-    color: #8a5a4c;
-    margin-bottom: 4px;
-  }
-
-  .kf-total-val {
-    font-family: 'Cormorant Garamond', Georgia, serif;
-    font-size: 30px;
-    font-weight: 600;
-    color: #5a0f2e;
-    line-height: 1.15;
-  }
-
-  .kf-badge-saldo {
-    display: inline-block;
-    background: #f8dfce;
-    color: #703833;
-    border-radius: 50px;
-    padding: 5px 16px;
-    font-size: 12px;
-    font-weight: 600;
-  }
-
-  /* Tarjetas contenedoras */
-  .kf-card {
-    background: #f7eed9;
-    border: 1px solid #ebd2c1;
-    border-radius: 18px;
-    padding: 26px 28px;
-    margin-bottom: 24px;
-  }
-
-  .kf-card-title {
-    font-family: 'Cormorant Garamond', Georgia, serif;
-    font-size: 24px;
-    font-weight: 600;
-    color: #5a0f2e;
-    margin-bottom: 4px;
-  }
-
-  .kf-card-subtitle {
-    font-size: 13px;
-    color: #8a5a4c;
-    margin-bottom: 20px;
-  }
-
-  /* Tablas */
-  .kf-table-wrapper {
-    overflow-x: auto;
-  }
-
-  .kf-table {
+  .kfp-progress-bg {
     width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    margin: 0;
-  }
-
-  .kf-table thead tr {
-    background: #fdbda0;
-  }
-
-  .kf-table th {
-    padding: 12px 18px;
-    font-size: 12px;
-    font-weight: 600;
-    color: #723b36;
-    border: none;
-    white-space: nowrap;
-  }
-
-  .kf-table th:first-child {
-    border-top-left-radius: 10px;
-    border-bottom-left-radius: 10px;
-  }
-
-  .kf-table th:last-child {
-    border-top-right-radius: 10px;
-    border-bottom-right-radius: 10px;
-  }
-
-  .kf-table tbody tr {
-    border-bottom: 1px solid rgba(235, 210, 193, 0.45);
-  }
-
-  .kf-table tbody tr:last-child {
-    border-bottom: none;
-  }
-
-  .kf-table td {
-    padding: 14px 18px;
-    font-size: 13px;
-    color: #5a0f2e;
-    vertical-align: middle;
-    border: none;
-  }
-
-  /* Badges */
-  .kf-badge {
-    display: inline-block;
-    padding: 4px 14px;
-    border-radius: 50px;
-    font-size: 11px;
-    font-weight: 600;
-    text-align: center;
-  }
-
-  .kf-badge-aldia {
-    background: #faede2;
-    color: #5a0f2e;
-  }
-
-  .kf-badge-pagada {
-    background: #fad3ba;
-    color: #6e2d3b;
-  }
-
-  /* Botones de acción */
-  .btn-kf-toggle {
-    background: transparent;
-    border: 1px solid #5a0f2e;
-    color: #5a0f2e;
-    border-radius: 50px;
-    padding: 4px 14px;
-    font-size: 11px;
-    font-weight: 600;
-    transition: all 0.2s ease;
-    cursor: pointer;
-  }
-
-  .btn-kf-toggle:hover {
-    background: #5a0f2e;
-    color: #f7eed9;
-  }
-
-  /* Panel derecho / Registrar abono */
-  .kf-monto-grande {
-    font-family: 'Cormorant Garamond', Georgia, serif;
-    font-size: 32px;
-    font-weight: 600;
-    color: #5a0f2e;
-    line-height: 1.1;
-  }
-
-  .kf-progress-bar-bg {
-    height: 6px;
-    background: #ebd2c1;
+    height: 8px;
+    background: rgba(253, 189, 160, 0.35);
     border-radius: 10px;
     overflow: hidden;
-    margin: 8px 0;
-  }
-
-  .kf-progress-bar-fill {
-    height: 100%;
-    background: #5a0f2e;
-    border-radius: 10px;
-  }
-
-  .kf-label {
-    display: block;
-    font-size: 12px;
-    font-weight: 600;
-    color: #6e3b33;
     margin-bottom: 6px;
   }
 
-  .kf-input, .kf-select {
-    width: 100%;
-    height: 44px;
+  .kfp-progress-fill {
+    height: 100%;
+    background: var(--vino);
     border-radius: 10px;
-    border: 1px solid #ebd2c1;
-    background: #fbf6ee;
-    padding: 8px 16px;
-    font-family: 'Jost', sans-serif;
-    font-size: 13px;
-    color: #5a0f2e;
-    outline: none;
-    transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
   }
 
-  .kf-input:focus, .kf-select:focus {
-    border-color: #5a0f2e;
-    background: #ffffff;
-    box-shadow: 0 0 0 3px rgba(90, 15, 46, 0.12);
-  }
-
-  .kf-upload-box {
-    border: 1px dashed #c9a79c;
-    border-radius: 10px;
-    padding: 12px;
-    text-align: center;
-    color: #8a5a4c;
-    font-size: 12px;
-    cursor: pointer;
-    background: #fbf6ee;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: background 0.2s;
-  }
-
-  .kf-upload-box:hover {
-    background: #faede2;
-  }
-
-  .btn-kf-guardar {
-    background: #5a0f2e;
-    border: none;
-    color: #f7eed9;
-    border-radius: 50px;
-    padding: 10px 24px;
-    font-size: 13px;
-    font-weight: 600;
+  .kfp-btn-edit {
+    background: #fff;
+    border: 1px solid rgba(90, 15, 46, 0.22);
+    border-radius: 100px;
+    padding: 4px 10px;
+    font-size: 11.5px;
+    color: var(--vino);
+    text-decoration: none;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    transition: background 0.2s;
+    gap: 4px;
   }
 
-  .btn-kf-guardar:hover {
-    background: #440921;
-    color: #f7eed9;
+  .kfp-btn-edit:hover {
+    background: var(--durazno);
   }
 </style>
 
-<div class="kf-proveedores-page">
-  <!-- Barra superior con breadcrumb, fecha y avatar -->
-  <div class="kf-header-bar">
-    <div class="kf-breadcrumb">
-      <span>Mi boutique</span> / <span>Proveedores</span>
-    </div>
-    <div class="kf-header-meta">
-      <span class="kf-header-date">{% now "j \d\e F \d\e Y"|lower %}</span>
-      <div class="kf-avatar-circle" title="K Fashion Store">K</div>
-    </div>
-  </div>
-
-  <!-- Banner principal -->
-  <div class="kf-hero-banner">
-    <div>
-      <h1 class="kf-hero-title">Proveedores</h1>
-      <p class="kf-hero-subtitle">Tus aliados, sus entregas y cada compromiso de pago.</p>
-    </div>
-    <a class="btn-kf-nuevo-prov" href="{% url 'proveedor_nuevo' %}">+ Nuevo proveedor</a>
-  </div>
+<div class="kfp">
+  {% url 'proveedor_nuevo' as url_nuevo_prov %}
+  {% include "tienda/_encabezado.html" with miga="Proveedores" titulo="Proveedores" subtitulo="Tus aliados, sus entregas y cada compromiso de pago." boton_url=url_nuevo_prov boton_texto="Nuevo proveedor" boton_icono="ti-plus" %}
 
   <div class="row g-4 align-items-start">
-    <!-- Columna Izquierda: Total + Tus proveedores + Compras pendientes -->
     <div class="col-lg-7">
       <!-- Tarjeta Total que debes a proveedores -->
-      <div class="kf-total-card">
+      <div class="kfp-tarjeta kfp-total-prov">
         <div>
-          <div class="kf-total-label">Total que debes a proveedores</div>
-          <div class="kf-total-val">{{ lista|total_deuda_proveedores|cop }}</div>
+          <small class="kfp-suave d-block" style="font-size:12.5px;">Total que debes a proveedores</small>
+          <span class="kfp-num" style="font-size:32px;">{{ lista|total_deuda_proveedores|cop }}</span>
         </div>
-        <div>
-          <span class="kf-badge-saldo">{{ lista|con_saldo_count }} proveedores con saldo</span>
-        </div>
+        <span class="kfp-badge kfp-badge-neutro">{{ lista|con_saldo_count }} proveedor{{ lista|con_saldo_count|pluralize:"es" }} con saldo</span>
       </div>
 
-      <!-- Tarjeta: Tus proveedores -->
-      <div class="kf-card mb-4">
-        <h2 class="kf-card-title">Tus proveedores</h2>
-        <div class="kf-table-wrapper">
-          <table class="kf-table">
+      <!-- Tabla de proveedores -->
+      <div class="kfp-tarjeta mb-4">
+        <div class="kfp-tarjeta-top">
+          <h2><i class="ti ti-truck-delivery me-1"></i> Tus proveedores</h2>
+        </div>
+        <div class="kfp-tabla-caja">
+          <table class="kfp-tabla">
             <thead>
               <tr>
                 <th>Proveedor</th>
                 <th>Contacto</th>
-                <th>Próximo pago</th>
-                <th class="text-end">Debes</th>
+                <th>Estado</th>
+                <th class="derecha">Debes</th>
+                <th class="derecha no-print">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {% for p in lista %}
               <tr>
-                <td><strong>{{ p.nombre }}</strong> <a class="ms-1 small" style="color:#8a5a4c" href="{% url 'proveedor_editar' p.pk %}">Editar</a></td>
+                <td><strong>{{ p.nombre }}</strong></td>
                 <td>{{ p.telefono|default:p.ciudad|default:"—" }}</td>
                 <td>
                   {% if p.saldo > 0 %}
-                  {{ p.ciudad|default:"Pendiente" }}
+                  <span class="kfp-badge kfp-badge-alerta">{{ p.ciudad|default:"Pendiente" }}</span>
                   {% else %}
-                  Sin pendientes
+                  <span class="kfp-badge kfp-badge-exito">Al día</span>
                   {% endif %}
                 </td>
-                <td class="text-end">
-                  {% if p.saldo > 0 %}
-                  <span class="fw-bold">{{ p.saldo|cop }}</span>
-                  {% else %}
-                  <span class="kf-badge kf-badge-aldia">Al día</span>
-                  {% endif %}
+                <td class="derecha fw-bold">{{ p.saldo|cop }}</td>
+                <td class="derecha no-print" style="white-space:nowrap;">
+                  <a class="kfp-btn-edit" href="{% url 'proveedor_editar' p.pk %}" title="Editar"><i class="ti ti-pencil"></i> Editar</a>
+                  <a class="kfp-btn-edit" style="color:#a4161a;" href="{% url 'proveedor_eliminar' p.pk %}" title="Eliminar proveedor"><i class="ti ti-trash"></i></a>
                 </td>
               </tr>
               {% empty %}
               <tr>
-                <td colspan="4" class="text-center text-muted py-4">Sin proveedores registrados.</td>
+                <td colspan="5" class="vacio">Sin proveedores registrados.</td>
               </tr>
               {% endfor %}
             </tbody>
@@ -419,39 +103,43 @@
         </div>
       </div>
 
-      <!-- Tarjeta: Compras pendientes de pago -->
-      <div class="kf-card mb-0">
-        <h2 class="kf-card-title">Compras pendientes de pago</h2>
-        <div class="kf-card-subtitle">Entradas de mercancía registradas</div>
+      <!-- Compras pendientes de pago -->
+      <div class="kfp-tarjeta">
+        <div class="kfp-tarjeta-top">
+          <div>
+            <h2><i class="ti ti-package me-1"></i> Compras pendientes de pago</h2>
+            <small class="kfp-suave">Entradas de mercancía registradas a crédito</small>
+          </div>
+        </div>
 
-        <div class="kf-table-wrapper">
-          <table class="kf-table">
+        <div class="kfp-tabla-caja">
+          <table class="kfp-tabla">
             <thead>
               <tr>
                 <th>Compra / fecha</th>
                 <th>Mercancía</th>
-                <th>Deuda</th>
-                <th class="text-end">Acción</th>
+                <th class="derecha">Deuda</th>
+                <th class="derecha no-print">Acción</th>
               </tr>
             </thead>
             <tbody>
               {% for e in pendientes %}
               <tr>
                 <td>#{{ e.pk }} · {{ e.fecha|date:"d M. Y"|lower }}</td>
-                <td>{{ e.proveedor.nombre }} · {{ e.cantidad }}x {{ e.variante }}</td>
-                <td>{{ e.valor_compra|cop }}</td>
-                <td class="text-end">
+                <td>{{ e.proveedor.nombre|default:"Proveedor eliminado" }} · {{ e.cantidad }}x {{ e.variante }}</td>
+                <td class="derecha fw-bold">{{ e.valor_compra|cop }}</td>
+                <td class="derecha no-print" style="white-space:nowrap;">
                   <form method="post" class="d-inline">
                     {% csrf_token %}
                     <input type="hidden" name="pagar" value="{{ e.pk }}">
-                    <button type="submit" class="btn-kf-toggle">Marcar pagada</button>
+                    <button type="submit" class="kfp-btn kfp-btn-durazno"><i class="ti ti-check"></i> Pagar</button>
                   </form>
-                  <a class="ms-2 small" style="color:#a4161a" href="{% url 'entrada_eliminar' e.pk %}">Eliminar</a>
+                  <a class="kfp-link ms-2" style="color:#a4161a;" href="{% url 'entrada_eliminar' e.pk %}" title="Eliminar entrada"><i class="ti ti-trash"></i></a>
                 </td>
               </tr>
               {% empty %}
               <tr>
-                <td colspan="4" class="text-center text-muted py-4">No se debe nada a proveedores.</td>
+                <td colspan="4" class="vacio">No se debe nada a proveedores.</td>
               </tr>
               {% endfor %}
             </tbody>
@@ -460,31 +148,27 @@
       </div>
     </div>
 
-    <!-- Columna Derecha: Panel de pago / abono -->
+    <!-- Columna Derecha: Panel de pago rápido -->
     <div class="col-lg-5">
-      <div class="kf-card mb-0">
+      <div class="kfp-tarjeta">
         {% if pendientes %}
-        <div class="d-flex justify-content-between align-items-start mb-2">
-          <div>
-            <h2 class="kf-card-title mb-1" id="panel_prov_nombre">Pago a {{ pendientes.0.proveedor.nombre }}</h2>
-            <div class="kf-card-subtitle mb-0" id="panel_prov_sub">Compra #{{ pendientes.0.pk }} · Pendiente de pago</div>
-          </div>
+        <div class="mb-3">
+          <h2 id="panel_prov_nombre">Pago a {{ pendientes.0.proveedor.nombre|default:"Proveedor" }}</h2>
+          <small class="kfp-suave" id="panel_prov_sub">Compra #{{ pendientes.0.pk }} · Pendiente de pago</small>
         </div>
 
-        <div class="d-flex justify-content-between align-items-baseline mt-4 mb-2">
-          <span class="kf-label m-0">Queda debiendo</span>
-          <span class="kf-monto-grande" id="panel_prov_monto">{{ pendientes.0.valor_compra|cop }}</span>
+        <div class="d-flex justify-content-between align-items-baseline mt-3 mb-2">
+          <span class="kfp-suave" style="font-size:13px;">Queda debiendo</span>
+          <span class="kfp-num" style="font-size:28px;" id="panel_prov_monto">{{ pendientes.0.valor_compra|cop }}</span>
         </div>
 
-        <div class="kf-progress-bar-bg">
-          <div class="kf-progress-bar-fill" style="width: 0%;"></div>
+        <div class="kfp-progress-bg">
+          <div class="kfp-progress-fill" style="width: 0%;"></div>
         </div>
-        <div class="d-flex justify-content-between small text-muted mb-4">
+        <div class="d-flex justify-content-between small kfp-suave mb-4">
           <span>$ 0 pagados</span>
           <span>Pendiente</span>
         </div>
-
-        <h3 class="kf-card-title mb-3" style="font-size: 20px;">Registrar abono</h3>
 
         <form method="post" id="formPagarProveedor">
           {% csrf_token %}
@@ -492,12 +176,12 @@
 
           <div class="row g-3 mb-3">
             <div class="col-sm-6">
-              <label class="kf-label">Valor</label>
-              <input type="text" class="kf-input" id="panel_input_valor" value="{{ pendientes.0.valor_compra|cop }}" readonly>
+              <label class="form-label">Valor a pagar</label>
+              <input type="text" class="form-control" id="panel_input_valor" value="{{ pendientes.0.valor_compra|cop }}" readonly>
             </div>
             <div class="col-sm-6">
-              <label class="kf-label">Medio</label>
-              <select class="kf-select">
+              <label class="form-label">Medio</label>
+              <select class="form-select">
                 <option selected>Bancolombia</option>
                 <option>Efectivo</option>
                 <option>Nequi</option>
@@ -507,36 +191,19 @@
           </div>
 
           <div class="mb-3">
-            <label class="kf-label">Fecha del abono</label>
-            <input type="date" class="kf-input" value="{% now 'Y-m-d' %}">
+            <label class="form-label">Fecha del pago</label>
+            <input type="date" class="form-control" value="{% now 'Y-m-d' %}">
           </div>
 
-          <div class="kf-upload-box mb-4">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-              <polyline points="17 8 12 3 7 8"></polyline>
-              <line x1="12" y1="3" x2="12" y2="15"></line>
-            </svg>
-            Subir foto del comprobante
-          </div>
-
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <span class="kf-label m-0">Quedará debiendo</span>
-            <span class="kf-total-val" style="font-size: 22px;">$ 0</span>
-          </div>
-
-          <button type="submit" class="btn-kf-guardar w-100 justify-content-center">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-            Guardar abono
+          <button type="submit" class="kfp-btn w-100">
+            <i class="ti ti-check"></i> Marcar compra como pagada
           </button>
         </form>
         {% else %}
-        <div class="text-center py-5">
-          <div class="kf-avatar-circle mx-auto mb-3" style="width: 48px; height: 48px; font-size: 20px;">✓</div>
-          <h2 class="kf-card-title">Todo al día</h2>
-          <p class="kf-card-subtitle mt-2">No tienes compras pendientes de pago a proveedores.</p>
+        <div class="text-center py-4">
+          <div class="kfp-avatar mx-auto mb-3" style="width:48px; height:48px; font-size:22px;"><i class="ti ti-check"></i></div>
+          <h2>Todo al día</h2>
+          <p class="kfp-nota mt-2">No tienes compras pendientes de pago a proveedores.</p>
         </div>
         {% endif %}
       </div>

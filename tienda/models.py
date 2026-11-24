@@ -112,7 +112,7 @@ class Variante(models.Model):
 
 class EntradaMercancia(models.Model):
     variante = models.ForeignKey(Variante, on_delete=models.PROTECT, related_name="entradas")
-    proveedor = models.ForeignKey(Proveedor, on_delete=models.PROTECT, related_name="entradas")
+    proveedor = models.ForeignKey(Proveedor, null=True, blank=True, on_delete=models.SET_NULL, related_name="entradas")
     cantidad = models.PositiveIntegerField(validators=[MinValueValidator(1)])
     valor_compra = models.DecimalField("Valor de la compra", max_digits=12, decimal_places=0)
     fecha = models.DateField(default=timezone.localdate)
@@ -213,3 +213,84 @@ class Gasto(models.Model):
 
     class Meta:
         ordering = ["-fecha", "-id"]
+
+
+class CambioPrenda(models.Model):
+    venta = models.ForeignKey(Venta, on_delete=models.CASCADE, related_name="cambios")
+    fecha = models.DateTimeField(default=timezone.now)
+    variante_devuelta = models.ForeignKey(Variante, on_delete=models.PROTECT, related_name="cambios_devueltos",
+                                         verbose_name="Prenda que entrega la clienta")
+    variante_nueva = models.ForeignKey(Variante, on_delete=models.PROTECT, related_name="cambios_entregados",
+                                       verbose_name="Prenda nueva que se lleva")
+    cantidad = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
+    diferencia_precio = models.DecimalField("Diferencia a cobrar", max_digits=12, decimal_places=0, default=0,
+                                           help_text="Cobro extra si la nueva prenda cuesta más; 0 si fue mano a mano")
+    motivo = models.CharField("Motivo del cambio", max_length=200, blank=True,
+                              help_text="Ej: Cambio de talla, color o modelo")
+    usuario = models.ForeignKey(User, on_delete=models.PROTECT)
+
+    class Meta:
+        ordering = ["-fecha", "-id"]
+        verbose_name = "Cambio de prenda"
+        verbose_name_plural = "Cambios de prendas"
+
+    def __str__(self):
+        return f"Cambio en {self.venta.numero}: {self.variante_devuelta} → {self.variante_nueva}"
+
+
+class Merma(models.Model):
+    TIPOS = [
+        ("dano", "Prenda rota / manchada"),
+        ("perdida", "Pérdida / Faltante"),
+        ("defecto", "Defecto de fábrica"),
+        ("ajuste", "Ajuste de inventario"),
+    ]
+    fecha = models.DateField(default=timezone.localdate)
+    variante = models.ForeignKey(Variante, on_delete=models.PROTECT, related_name="mermas")
+    tipo = models.CharField(max_length=20, choices=TIPOS, default="dano")
+    cantidad = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+    motivo = models.CharField("Motivo / Explicación", max_length=250)
+    usuario = models.ForeignKey(User, on_delete=models.PROTECT)
+
+    class Meta:
+        ordering = ["-fecha", "-id"]
+        verbose_name = "Merma / Ajuste de inventario"
+        verbose_name_plural = "Mermas y Ajustes"
+
+    def __str__(self):
+        return f"{self.cantidad} x {self.variante} ({self.get_tipo_display()})"
+
+    @property
+    def costo_total(self):
+        return self.cantidad * self.variante.prenda.costo
+
+
+class Caja(models.Model):
+    ESTADOS = [("abierta", "Abierta"), ("cerrada", "Cerrada")]
+
+    usuario = models.ForeignKey(User, on_delete=models.PROTECT, related_name="cajas")
+    fecha_apertura = models.DateTimeField(default=timezone.now)
+    fecha_cierre = models.DateTimeField(null=True, blank=True)
+    monto_apertura = models.DecimalField("Base inicial en efectivo", max_digits=12, decimal_places=0, default=0,
+                                         validators=[MinValueValidator(0)])
+    estado = models.CharField(max_length=10, choices=ESTADOS, default="abierta")
+
+    # Medios reportados físicamente al cierre
+    efectivo_cierre = models.DecimalField("Efectivo contado", max_digits=12, decimal_places=0, default=0)
+    nequi_cierre = models.DecimalField("Nequi comprobado", max_digits=12, decimal_places=0, default=0)
+    bancolombia_cierre = models.DecimalField("Bancolombia comprobado", max_digits=12, decimal_places=0, default=0)
+    daviplata_cierre = models.DecimalField("Daviplata comprobado", max_digits=12, decimal_places=0, default=0)
+    datafono_cierre = models.DecimalField("Datáfono Bold comprobado", max_digits=12, decimal_places=0, default=0)
+    link_cierre = models.DecimalField("Link de pago comprobado", max_digits=12, decimal_places=0, default=0)
+
+    # Totales del sistema calculados al momento de cerrar
+    sistema_efectivo = models.DecimalField(max_digits=12, decimal_places=0, default=0)
+    sistema_digital = models.DecimalField(max_digits=12, decimal_places=0, default=0)
+    diferencia = models.DecimalField("Diferencia (+ sobrante / - faltante)", max_digits=12, decimal_places=0, default=0)
+    observaciones = models.TextField("Observaciones del cierre", blank=True)
+
+    class Meta:
+        ordering = ["-fecha_apertura", "-id"]
+
+    def __str__(self):
+        return f"Caja #{self.pk} · {self.usuario.username} ({self.get_estado_display()})"

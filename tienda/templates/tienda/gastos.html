@@ -1,411 +1,79 @@
 {% extends "tienda/base.html" %}{% load tienda_extras %}
 {% block content %}
+{% include "tienda/_estilos.html" %}
 <style>
-  body {
-    background-color: #f7eed9 !important;
-    color: #5a0f2e;
-    font-family: 'Jost', sans-serif;
-  }
-
-  /* Barra superior / migas de pan y fecha */
-  .kf-header-bar {
+  .kfp-stat-gasto {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    font-family: 'Jost', sans-serif;
-  }
-
-  .kf-breadcrumb {
-    font-size: 13px;
-    color: #a87c74;
-  }
-
-  .kf-breadcrumb a {
-    color: #a87c74;
-    text-decoration: none;
-  }
-
-  .kf-header-meta {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .kf-header-date {
-    font-size: 13px;
-    color: #a87c74;
-  }
-
-  .kf-avatar-circle {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: #f9d5bc;
-    color: #5a0f2e;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    font-weight: 600;
-  }
-
-  /* Banner Principal / Hero */
-  .kf-hero-banner {
-    background: #feb99a;
-    border-radius: 16px;
-    padding: 24px 28px;
-    margin-bottom: 24px;
-  }
-
-  .kf-hero-title {
-    font-family: 'Cormorant Garamond', Georgia, serif;
-    font-size: 38px;
-    font-weight: 600;
-    line-height: 1.15;
-    color: #5a0f2e;
-    margin: 0 0 6px 0;
-  }
-
-  .kf-hero-subtitle {
-    font-size: 14px;
-    color: rgba(90, 15, 46, 0.85);
-    margin: 0;
-  }
-
-  /* Tarjetas contenedoras */
-  .kf-card {
-    background: #f7eed9;
-    border: 1px solid #ebd2c1;
-    border-radius: 18px;
-    padding: 26px 28px;
-    margin-bottom: 24px;
-  }
-
-  .kf-card-title {
-    font-family: 'Cormorant Garamond', Georgia, serif;
-    font-size: 24px;
-    font-weight: 600;
-    color: #5a0f2e;
-    margin-bottom: 4px;
-  }
-
-  .kf-card-subtitle {
-    font-size: 13px;
-    color: #8a5a4c;
-    margin-bottom: 20px;
-  }
-
-  /* Stat cards pequeñas */
-  .kf-stat-card {
-    background: #faede2;
-    border: 1px solid #ebd2c1;
-    border-radius: 14px;
-    padding: 16px 20px;
+    flex-direction: column;
+    gap: 5px;
+    padding: 18px 20px;
     height: 100%;
   }
 
-  .kf-stat-label {
+  .kfp-stat-gasto small {
     font-size: 12px;
-    color: #8a5a4c;
-    margin-bottom: 4px;
+    color: var(--suave);
   }
 
-  .kf-stat-value {
-    font-family: 'Cormorant Garamond', Georgia, serif;
-    font-size: 24px;
-    font-weight: 600;
-    color: #5a0f2e;
-    line-height: 1.2;
+  .kfp-stat-gasto .kfp-num {
+    font-size: clamp(20px, 1.9vw, 26px);
   }
 
-  /* Pills para seleccionar Ámbito (Del negocio / Personal) */
-  .kf-pill-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 18px;
-  }
-
-  .kf-pill {
-    display: inline-block;
-    padding: 6px 18px;
-    border-radius: 50px;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    user-select: none;
-    border: 1px solid #ebd2c1;
-    background: transparent;
-    color: #5a0f2e;
-  }
-
-  .kf-pill.active {
-    background: #5a0f2e;
-    color: #f7eed9;
-    border-color: #5a0f2e;
-  }
-
-  /* Pills para Categoría */
-  .kf-cat-pill {
-    display: inline-block;
-    padding: 5px 14px;
-    border-radius: 50px;
-    font-size: 11px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    user-select: none;
-    border: 1px solid #ebd2c1;
-    background: transparent;
-    color: #5a0f2e;
-  }
-
-  .kf-cat-pill.active {
-    background: #5a0f2e;
-    color: #f7eed9;
-    border-color: #5a0f2e;
-  }
-
-  /* Campos de formulario */
-  .kf-label {
-    display: block;
-    font-size: 12px;
-    font-weight: 600;
-    color: #6e3b33;
-    margin-bottom: 6px;
-  }
-
-  .kf-input, .kf-select {
-    width: 100%;
-    height: 44px;
-    border-radius: 10px;
-    border: 1px solid #ebd2c1;
-    background: #fbf6ee;
-    padding: 8px 16px;
-    font-family: 'Jost', sans-serif;
-    font-size: 13px;
-    color: #5a0f2e;
-    outline: none;
-    transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
-  }
-
-  .kf-input::placeholder {
-    color: #b5928a;
-    opacity: 0.8;
-  }
-
-  .kf-input:focus, .kf-select:focus {
-    border-color: #5a0f2e;
-    background: #ffffff;
-    box-shadow: 0 0 0 3px rgba(90, 15, 46, 0.12);
-  }
-
-  .kf-helper-text {
-    font-size: 12px;
-    color: #8a5a4c;
-    margin-top: 12px;
-    margin-bottom: 22px;
-    line-height: 1.4;
-  }
-
-  /* Botón Guardar gasto */
-  .btn-kf-guardar {
-    background: #5a0f2e;
-    border: none;
-    color: #f7eed9;
-    border-radius: 50px;
-    padding: 10px 26px;
-    font-size: 13px;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-
-  .btn-kf-guardar:hover {
-    background: #440921;
-    color: #f7eed9;
-  }
-
-  /* Tabla Movimientos */
-  .kf-table-wrapper {
-    overflow-x: auto;
-  }
-
-  .kf-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    margin: 0;
-  }
-
-  .kf-table thead tr {
-    background: #fdbda0;
-  }
-
-  .kf-table th {
-    padding: 12px 18px;
-    font-size: 12px;
-    font-weight: 600;
-    color: #723b36;
-    border: none;
-    white-space: nowrap;
-  }
-
-  .kf-table th:first-child {
-    border-top-left-radius: 10px;
-    border-bottom-left-radius: 10px;
-  }
-
-  .kf-table th:last-child {
-    border-top-right-radius: 10px;
-    border-bottom-right-radius: 10px;
-  }
-
-  .kf-table tbody tr {
-    border-bottom: 1px solid rgba(235, 210, 193, 0.45);
-  }
-
-  .kf-table tbody tr:last-child {
-    border-bottom: none;
-  }
-
-  .kf-table td {
-    padding: 14px 18px;
-    font-size: 13px;
-    color: #5a0f2e;
-    vertical-align: middle;
-    border: none;
-  }
-
-  .kf-table tr.row-personal td {
-    color: #8a5a4c;
-  }
-
-  .kf-filtro-box {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 12px;
-  }
-
-  .kf-filtro-input {
-    height: 32px;
-    border-radius: 8px;
-    border: 1px solid #ebd2c1;
-    background: #fbf6ee;
-    padding: 2px 8px;
-    font-size: 12px;
-    color: #5a0f2e;
-  }
-
-  .btn-kf-filtro {
-    height: 32px;
-    border-radius: 8px;
-    border: 1px solid #5a0f2e;
-    background: transparent;
-    color: #5a0f2e;
-    font-size: 12px;
-    font-weight: 600;
-    padding: 0 12px;
-    cursor: pointer;
-  }
-
-  .btn-kf-filtro:hover {
-    background: #5a0f2e;
-    color: #f7eed9;
-  }
-
-  /* Banner inferior */
-  .kf-bottom-banner {
-    background: #fae0d2;
-    border-radius: 12px;
-    padding: 12px 20px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    color: #5a0f2e;
-    font-size: 13px;
-    margin-top: 14px;
-  }
-
-  .kf-bottom-banner svg {
-    flex-shrink: 0;
+  .kfp-row-personal td {
+    background: rgba(253, 189, 160, 0.14) !important;
   }
 </style>
 
-<div class="kf-gastos-page">
-  <!-- Barra superior con breadcrumb, fecha y avatar -->
-  <div class="kf-header-bar">
-    <div class="kf-breadcrumb">
-      <span>Mi boutique</span> / <span>Gastos e ingresos</span>
-    </div>
-    <div class="kf-header-meta">
-      <span class="kf-header-date">{% now "j \d\e F \d\e Y"|lower %}</span>
-      <div class="kf-avatar-circle" title="K Fashion Store">K</div>
-    </div>
-  </div>
+<div class="kfp">
+  {% include "tienda/_encabezado.html" with miga="Dinero / Gastos e ingresos" titulo="Gastos e ingresos" subtitulo="Separa el dinero del negocio del dinero personal." %}
 
-  <!-- Banner principal -->
-  <div class="kf-hero-banner">
-    <h1 class="kf-hero-title">Gastos e ingresos</h1>
-    <p class="kf-hero-subtitle">Separa el dinero del negocio del dinero personal.</p>
-  </div>
-
-  <div class="row g-4 align-items-start">
+  <div class="row g-4 align-items-start mb-4">
     <!-- Columna Izquierda: Formulario Registrar gasto -->
     <div class="col-lg-5">
-      <div class="kf-card mb-0">
-        <h2 class="kf-card-title">Registrar gasto</h2>
+      <div class="kfp-tarjeta">
+        <h2 class="mb-3"><i class="ti ti-receipt-2 me-1"></i> Registrar gasto</h2>
 
         <form method="post" action="{% url 'gasto_nuevo' %}" id="formGasto">
           {% csrf_token %}
 
-          <!-- Selector Ámbito: Del negocio / Personal -->
+          <!-- Selector Ámbito -->
           <input type="hidden" name="ambito" id="input_ambito" value="negocio">
-          <div class="kf-pill-group">
-            <span class="kf-pill active" id="pill_negocio" onclick="seleccionarAmbito('negocio')">Del negocio</span>
-            <span class="kf-pill" id="pill_personal" onclick="seleccionarAmbito('personal')">Personal</span>
+          <div class="kfp-selector mb-3">
+            <span class="kfp-pill activa" id="pill_negocio" onclick="seleccionarAmbito('negocio')">Del negocio</span>
+            <span class="kfp-pill" id="pill_personal" onclick="seleccionarAmbito('personal')">Personal</span>
           </div>
 
           <!-- Selector Categoría -->
-          <label class="kf-label">Categoría</label>
+          <label class="form-label d-block">Categoría</label>
           <input type="hidden" name="categoria" id="input_categoria" value="otros">
-          <div class="kf-pill-group mb-3">
-            <span class="kf-cat-pill" id="cat_mercancia" onclick="seleccionarCategoria('mercancia', 'Mercancía')">Mercancía</span>
-            <span class="kf-cat-pill" id="cat_arriendo" onclick="seleccionarCategoria('arriendo', 'Arriendo')">Arriendo</span>
-            <span class="kf-cat-pill" id="cat_servicios" onclick="seleccionarCategoria('servicios', 'Servicios')">Servicios</span>
-            <span class="kf-cat-pill active" id="cat_empaques" onclick="seleccionarCategoria('otros', 'Empaques')">Empaques</span>
-            <span class="kf-cat-pill" id="cat_salario" onclick="seleccionarCategoria('salario', 'Mi salario')">Mi salario</span>
-            <span class="kf-cat-pill" id="cat_otros" onclick="seleccionarCategoria('otros', 'Otros')">Otros</span>
+          <div class="d-flex flex-wrap gap-2 mb-3">
+            <span class="kfp-pill" id="cat_mercancia" onclick="seleccionarCategoria('mercancia', 'Mercancía')">Mercancía</span>
+            <span class="kfp-pill" id="cat_arriendo" onclick="seleccionarCategoria('arriendo', 'Arriendo')">Arriendo</span>
+            <span class="kfp-pill" id="cat_servicios" onclick="seleccionarCategoria('servicios', 'Servicios')">Servicios</span>
+            <span class="kfp-pill activa" id="cat_empaques" onclick="seleccionarCategoria('otros', 'Empaques')">Empaques</span>
+            <span class="kfp-pill" id="cat_salario" onclick="seleccionarCategoria('salario', 'Mi salario')">Mi salario</span>
+            <span class="kfp-pill" id="cat_otros" onclick="seleccionarCategoria('otros', 'Otros')">Otros</span>
           </div>
 
-          <!-- Descripción -->
           <div class="mb-3">
-            <label class="kf-label" for="id_descripcion">Descripción</label>
-            <input type="text" name="descripcion" id="id_descripcion" class="kf-input" placeholder="Bolsas de tela para las compras" required>
+            <label class="form-label" for="id_descripcion">Descripción</label>
+            <input type="text" name="descripcion" id="id_descripcion" class="form-control" placeholder="Bolsas de tela para las compras" required>
           </div>
 
-          <!-- Monto y Fecha -->
           <div class="row g-3 mb-3">
             <div class="col-sm-6">
-              <label class="kf-label" for="id_monto">Monto</label>
-              <input type="number" step="1" min="1" name="monto" id="id_monto" class="kf-input" placeholder="$ 50.000" required>
+              <label class="form-label" for="id_monto">Monto</label>
+              <input type="number" step="1" min="1" name="monto" id="id_monto" class="form-control" placeholder="$ 50.000" required>
             </div>
             <div class="col-sm-6">
-              <label class="kf-label" for="id_fecha">Fecha</label>
-              <input type="date" name="fecha" id="id_fecha" class="kf-input" value="{% now 'Y-m-d' %}" required>
+              <label class="form-label" for="id_fecha">Fecha</label>
+              <input type="date" name="fecha" id="id_fecha" class="form-control" value="{% now 'Y-m-d' %}" required>
             </div>
           </div>
 
-          <!-- Medio de pago -->
           <div class="mb-3">
-            <label class="kf-label" for="id_medio_pago">Medio de pago</label>
-            <select name="medio_pago" id="id_medio_pago" class="kf-select">
+            <label class="form-label" for="id_medio_pago">Medio de pago</label>
+            <select name="medio_pago" id="id_medio_pago" class="form-select">
               <option value="bancolombia" selected>Bancolombia</option>
               <option value="efectivo">Efectivo</option>
               <option value="nequi">Nequi</option>
@@ -415,110 +83,100 @@
             </select>
           </div>
 
-          <!-- Texto de ayuda dinámico -->
-          <p class="kf-helper-text" id="kf_gasto_helper">Este gasto se guardará en Empaques y hará parte del balance del negocio.</p>
+          <p class="kfp-nota mb-3" id="kf_gasto_helper">Este gasto se guardará en Empaques y hará parte del balance del negocio.</p>
 
-          <!-- Botón de guardar -->
-          <button type="submit" class="btn-kf-guardar">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-            Guardar gasto
+          <button type="submit" class="kfp-btn w-100">
+            <i class="ti ti-check"></i> Guardar gasto
           </button>
         </form>
       </div>
     </div>
 
-    <!-- Columna Derecha: Tarjetas resumen + Movimientos del mes -->
+    <!-- Columna Derecha: Tarjetas resumen + Movimientos -->
     <div class="col-lg-7">
-      <!-- 3 Tarjetas resumen superiores -->
       <div class="row g-3 mb-4">
-        <div class="col-4">
-          <div class="kf-stat-card">
-            <div class="kf-stat-label">Del negocio</div>
-            <div class="kf-stat-value">{{ lista|total_negocio|cop }}</div>
+        <div class="col-12 col-sm-4">
+          <div class="kfp-tarjeta kfp-stat-gasto">
+            <small>Del negocio</small>
+            <span class="kfp-num">{{ lista|total_negocio|cop }}</span>
           </div>
         </div>
-        <div class="col-4">
-          <div class="kf-stat-card">
-            <div class="kf-stat-label">Mi salario</div>
-            <div class="kf-stat-value">{{ lista|total_salario|cop }}</div>
+        <div class="col-12 col-sm-4">
+          <div class="kfp-tarjeta kfp-stat-gasto">
+            <small>Mi salario</small>
+            <span class="kfp-num">{{ lista|total_salario|cop }}</span>
           </div>
         </div>
-        <div class="col-4">
-          <div class="kf-stat-card">
-            <div class="kf-stat-label">Personales aparte</div>
-            <div class="kf-stat-value">{{ lista|total_personal|cop }}</div>
+        <div class="col-12 col-sm-4">
+          <div class="kfp-tarjeta kfp-stat-gasto">
+            <small>Personales aparte</small>
+            <span class="kfp-num">{{ lista|total_personal|cop }}</span>
           </div>
         </div>
       </div>
 
-      <!-- Tarjeta Movimientos del mes -->
-      <div class="kf-card mb-0">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+      <div class="kfp-tarjeta">
+        <div class="kfp-tarjeta-top">
           <div>
-            <h2 class="kf-card-title mb-0">Movimientos del mes</h2>
-            <div class="kf-card-subtitle mb-0">{{ desde|date:"F \d\e Y"|capfirst }} · Últimos registros</div>
+            <h2>Movimientos del periodo</h2>
+            <small class="kfp-suave">{{ desde|date:"j M" }} al {{ hasta|date:"j M Y" }}</small>
           </div>
 
-          <!-- Filtro de fechas sutil -->
-          <form method="get" class="kf-filtro-box">
-            <input type="date" name="desde" value="{{ desde|date:'Y-m-d' }}" class="kf-filtro-input" title="Fecha inicial">
-            <input type="date" name="hasta" value="{{ hasta|date:'Y-m-d' }}" class="kf-filtro-input" title="Fecha final">
-            <button type="submit" class="btn-kf-filtro">Filtrar</button>
+          <form method="get" class="d-flex align-items-center gap-2 flex-wrap kf-filtro-box no-print">
+            <input type="date" name="desde" value="{{ desde|date:'Y-m-d' }}" class="form-control" title="Fecha inicial" aria-label="Desde">
+            <input type="date" name="hasta" value="{{ hasta|date:'Y-m-d' }}" class="form-control" title="Fecha final" aria-label="Hasta">
+            <button type="submit" class="kfp-btn kfp-btn-durazno" style="height:40px;"><i class="ti ti-filter"></i> Filtrar</button>
           </form>
         </div>
 
-        <div class="kf-table-wrapper">
-          <table class="kf-table">
+        <div class="kfp-tabla-caja">
+          <table class="kfp-tabla">
             <thead>
               <tr>
                 <th>Fecha</th>
                 <th>Descripción</th>
                 <th>Tipo</th>
                 <th>Medio</th>
-                <th class="text-end">Valor</th>
+                <th class="derecha">Valor</th>
               </tr>
             </thead>
             <tbody>
               {% for g in lista %}
-              <tr class="{% if g.ambito == 'personal' %}row-personal{% endif %}">
+              <tr class="{% if g.ambito == 'personal' %}kfp-row-personal{% endif %}">
                 <td style="white-space: nowrap;">{{ g.fecha|date:"d M."|lower }}</td>
-                <td>{{ g.descripcion }} <a class="ms-1 small" style="color:#8a5a4c" href="{% url 'gasto_editar' g.pk %}">Editar</a></td>
+                <td>
+                  {{ g.descripcion }}
+                  <a class="kfp-link ms-1 no-print" style="color:var(--suave);" href="{% url 'gasto_editar' g.pk %}" title="Editar"><i class="ti ti-pencil"></i></a>
+                </td>
                 <td>
                   {% if g.categoria == 'salario' %}
-                  Mi salario
+                  <span class="kfp-badge kfp-badge-info">Mi salario</span>
                   {% elif g.ambito == 'personal' %}
-                  Personal
+                  <span class="kfp-badge kfp-badge-alerta">Personal</span>
                   {% else %}
-                  Negocio
+                  <span class="kfp-badge kfp-badge-neutro">Negocio</span>
                   {% endif %}
                 </td>
                 <td>{{ g.get_medio_pago_display }}</td>
-                <td class="text-end" style="white-space: nowrap; font-weight: 500;">- {{ g.monto|cop }}</td>
+                <td class="derecha fw-bold" style="white-space: nowrap;">- {{ g.monto|cop }}</td>
               </tr>
               {% empty %}
               <tr>
-                <td colspan="5" class="text-center text-muted py-4">Sin gastos en este rango.</td>
+                <td colspan="5" class="vacio">Sin gastos registrados en este rango.</td>
               </tr>
               {% endfor %}
             </tbody>
           </table>
         </div>
 
-        <p class="kf-text-muted small mt-3 mb-0">Ingresos: dinero recibido. La mercancía a crédito se registra por su costo total.</p>
+        <p class="kfp-nota">Ingresos: dinero recibido. La mercancía a crédito se registra por su costo total.</p>
       </div>
     </div>
   </div>
 
-  <!-- Banner inferior: Nota de gastos personales -->
-  <div class="kf-bottom-banner">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="10"></circle>
-      <line x1="12" y1="16" x2="12" y2="12"></line>
-      <line x1="12" y1="8" x2="12.01" y2="8"></line>
-    </svg>
-    <span>Los gastos personales se guardan aparte y no se restan de la ganancia del negocio</span>
+  <div class="kfp-suave-caja d-flex align-items-center gap-2" style="font-size:13px;">
+    <i class="ti ti-info-circle fs-5"></i>
+    <span>Los gastos personales se guardan aparte y no se restan de la ganancia del negocio.</span>
   </div>
 </div>
 
@@ -537,8 +195,8 @@
 
   function seleccionarAmbito(valor) {
     document.getElementById('input_ambito').value = valor;
-    document.getElementById('pill_negocio').classList.toggle('active', valor === 'negocio');
-    document.getElementById('pill_personal').classList.toggle('active', valor === 'personal');
+    document.getElementById('pill_negocio').classList.toggle('activa', valor === 'negocio');
+    document.getElementById('pill_personal').classList.toggle('activa', valor === 'personal');
     actualizarTextoAyuda();
   }
 
@@ -546,9 +204,7 @@
     document.getElementById('input_categoria').value = valor;
     categoriaActualNombre = nombre;
     const ids = ['cat_mercancia', 'cat_arriendo', 'cat_servicios', 'cat_empaques', 'cat_salario', 'cat_otros'];
-    ids.forEach(function(id) {
-      document.getElementById(id).classList.remove('active');
-    });
+    ids.forEach(id => document.getElementById(id).classList.remove('activa'));
     const mapId = {
       'Mercancía': 'cat_mercancia',
       'Arriendo': 'cat_arriendo',
@@ -557,9 +213,7 @@
       'Mi salario': 'cat_salario',
       'Otros': 'cat_otros'
     };
-    if (mapId[nombre]) {
-      document.getElementById(mapId[nombre]).classList.add('active');
-    }
+    if (mapId[nombre]) document.getElementById(mapId[nombre]).classList.add('activa');
     actualizarTextoAyuda();
   }
 </script>

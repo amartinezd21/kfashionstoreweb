@@ -16,8 +16,8 @@
 </style>
 
 <div class="kfp">
-  {% url volver as url_volver %}
-  {% include "tienda/_encabezado.html" with titulo=titulo boton_url=url_volver boton_texto="← Volver" boton_claro=True %}
+  {% if volver|slice:":1" == "/" %}{% firstof volver as url_volver %}{% else %}{% url volver as url_volver %}{% endif %}
+  {% include "tienda/_encabezado.html" with titulo=titulo boton_url=url_volver boton_texto="Volver" boton_claro=True %}
 
   <form method="post" enctype="multipart/form-data">{% csrf_token %}
     <div class="row g-3">
@@ -60,9 +60,9 @@
     </div>
 
     <div class="kfp-acciones">
-      {% if eliminar %}<a class="kfp-link me-auto align-self-center" style="color:#a4161a" href="{{ eliminar }}">Eliminar…</a>{% endif %}
-      <a class="kfp-btn kfp-btn-claro" href="{{ url_volver }}">Cancelar</a>
-      <button class="kfp-btn">✓ Guardar</button>
+      {% if eliminar %}<a class="kfp-link me-auto align-self-center" style="color:#a4161a" href="{{ eliminar }}"><i class="ti ti-trash"></i> Eliminar…</a>{% endif %}
+      <a class="kfp-btn kfp-btn-claro" href="{{ url_volver }}"><i class="ti ti-x"></i> Cancelar</a>
+      <button type="submit" class="kfp-btn"><i class="ti ti-check"></i> Guardar</button>
     </div>
   </form>
 </div>

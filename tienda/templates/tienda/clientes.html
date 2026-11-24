@@ -32,7 +32,15 @@
           <td>{{ c.ciudad|default:"—" }}</td>
           <td>{{ c.compras }}</td>
           <td>{% if c.saldo > 0 %}<b>{{ c.saldo|cop }}</b>{% else %}<span class="kfp-al-dia">Al día</span>{% endif %}</td>
-          <td class="no-print"><a class="kfp-link" href="{% url 'cliente_detalle' c.pk %}">Ver →</a></td>
+          <td class="no-print text-end">
+            <div class="d-inline-flex align-items-center gap-2">
+              <a class="kfp-link" href="{% url 'cliente_detalle' c.pk %}">Ver <i class="ti ti-arrow-right"></i></a>
+              <a class="kfp-link" style="color:var(--suave);" href="{% url 'cliente_editar' c.pk %}" title="Editar"><i class="ti ti-pencil"></i></a>
+              {% if es_propietaria %}
+              <a class="kfp-link" style="color:#a4161a;" href="{% url 'cliente_eliminar' c.pk %}" title="Eliminar clienta"><i class="ti ti-trash"></i></a>
+              {% endif %}
+            </div>
+          </td>
         </tr>
         {% empty %}
         <tr><td colspan="6" class="vacio">{% if q %}No hay clientas que coincidan con «{{ q }}».{% else %}Aún no tienes clientas registradas.{% endif %}</td></tr>

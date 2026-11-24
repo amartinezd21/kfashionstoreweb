@@ -9,24 +9,23 @@
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
-    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-  <!-- Bootstrap 5 CSS -->
+  <!-- Bootstrap 5 CSS & Tabler Icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 
   <style>
     :root {
-      --kf-wine: #63153b;
-      --kf-wine-hover: #4e0f2d;
-      --kf-peach: #f5c6ad;
-      --kf-rose-muted: #c991a5;
-      --kf-gold-line: #c28876;
-      --kf-cream-bg: #fff9f6;
-      --kf-border: #ebd9d3;
-      --kf-text-dark: #1f1e1f;
-      --kf-text-muted: #7a7375;
+      --kf-wine: #5a0f2e;
+      --kf-wine-hover: #460b24;
+      --kf-peach: #fdbda0;
+      --kf-rose-muted: rgba(247, 238, 217, 0.72);
+      --kf-gold-line: #fdbda0;
+      --kf-cream-bg: #f7eed9;
+      --kf-border: rgba(90, 15, 46, 0.18);
+      --kf-text-dark: #5a0f2e;
+      --kf-text-muted: rgba(90, 15, 46, 0.7);
     }
 
     * {
@@ -38,7 +37,7 @@
       height: 100%;
       margin: 0;
       padding: 0;
-      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-family: 'Jost', sans-serif;
       background-color: var(--kf-cream-bg);
       overflow-x: hidden;
     }
@@ -76,7 +75,7 @@
     }
 
     .brand-title {
-      font-family: 'Playfair Display', Georgia, serif;
+      font-family: 'Cormorant Garamond', Georgia, serif;
       font-size: clamp(3.2rem, 5vw, 4.4rem);
       font-weight: 400;
       line-height: 1.08;
@@ -358,14 +357,17 @@
 
           <div class="mb-3">
             <label for="id_username" class="custom-label">Usuario</label>
-            <input type="text" name="username" id="id_username" class="custom-input" placeholder="propietaria"
-              value="{{ form.username.value|default:'' }}" required autofocus autocomplete="username">
+            <input type="text" name="username" id="id_username" class="custom-input" placeholder="propietaria" value="{{ form.username.value|default:'' }}" required autofocus autocomplete="username">
           </div>
 
           <div class="mb-2">
             <label for="id_password" class="custom-label">Contraseña</label>
-            <input type="password" name="password" id="id_password" class="custom-input" placeholder="••••••••" required
-              autocomplete="current-password">
+            <div class="position-relative">
+              <input type="password" name="password" id="id_password" class="custom-input" style="padding-right:44px;" placeholder="••••••••" required autocomplete="current-password">
+              <button type="button" id="toggle-pwd" aria-label="Mostrar u ocultar contraseña" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--kf-text-muted); cursor:pointer; padding:4px 6px;">
+                <i class="ti ti-eye" id="toggle-pwd-icon"></i>
+              </button>
+            </div>
           </div>
 
           <div class="text-end mb-4">
@@ -373,24 +375,16 @@
               contraseña?</a>
           </div>
 
-          <button type="submit" class="btn-enter">
+          <button type="submit" class="btn-enter" id="btn-login">
             <span>Entrar</span>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-              <polyline points="12 5 19 12 12 19"></polyline>
-            </svg>
+            <i class="ti ti-arrow-right"></i>
           </button>
         </form>
 
         <div class="form-divider"></div>
 
         <div class="security-notice">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-            stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-          </svg>
+          <i class="ti ti-lock"></i>
           <span>Esta es una web segura</span>
         </div>
 
@@ -408,8 +402,7 @@
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content p-3 shadow-sm">
         <div class="modal-header border-0 pb-0">
-          <h5 class="modal-title font-serif" id="forgotModalLabel"
-            style="font-family:'Playfair Display',serif; color:var(--kf-wine);">Restablecer contraseña</h5>
+          <h5 class="modal-title font-serif" id="forgotModalLabel" style="font-family:'Playfair Display',serif; color:var(--kf-wine);">Restablecer contraseña</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
         </div>
         <div class="modal-body text-secondary" style="font-size:0.92rem; line-height:1.5;">
@@ -422,8 +415,7 @@
           </ul>
         </div>
         <div class="modal-footer border-0 pt-0">
-          <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3"
-            data-bs-dismiss="modal">Entendido</button>
+          <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Entendido</button>
         </div>
       </div>
     </div>
@@ -431,6 +423,26 @@
 
   <!-- Bootstrap 5 Bundle JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const pwd = document.getElementById('id_password');
+    const toggleBtn = document.getElementById('toggle-pwd');
+    const toggleIcon = document.getElementById('toggle-pwd-icon');
+    if (toggleBtn && pwd) {
+      toggleBtn.addEventListener('click', () => {
+        const esTexto = pwd.type === 'text';
+        pwd.type = esTexto ? 'password' : 'text';
+        toggleIcon.className = esTexto ? 'ti ti-eye' : 'ti ti-eye-off';
+      });
+    }
+    const formLogin = document.querySelector('form');
+    const btnLogin = document.getElementById('btn-login');
+    if (formLogin && btnLogin) {
+      formLogin.addEventListener('submit', () => {
+        btnLogin.disabled = true;
+        btnLogin.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span><span>Entrando...</span>';
+      });
+    }
+  </script>
 </body>
 
 </html>
