@@ -55,8 +55,7 @@
 
 <div class="kfp">
   {% url 'clientes' as url_volver %}
-  {% include "tienda/_encabezado.html" with miga="Clientas" titulo=c.nombre subtitulo="Su historia con la tienda, compra
-  por compra." boton_url=url_volver boton_texto="← Volver a clientas" boton_claro=True %}
+  {% include "tienda/_encabezado.html" with miga="Clientas" titulo=c.nombre subtitulo="Su historia con la tienda, compra por compra." boton_url=url_volver boton_texto="← Volver a clientas" boton_claro=True %}
 
   <div class="row g-3">
     <div class="col-lg-5">
@@ -91,8 +90,7 @@
           <div class="kfp-deuda-fila mb-2"><b>Debe {{ c.saldo|cop }}</b><a class="kfp-link" href="{% url 'ventas' %}?credito=1">Ver cuentas por cobrar →</a></div>
           {% for v in creditos_pendientes %}
           <div class="kfp-deuda-fila mt-2">
-            <span>{{ v.numero }} · debe {{ v.saldo|cop }}{% if v.fecha_limite %} · hasta el {{ v.fecha_limite|date:"j
-              M"|lower }}{% endif %}</span>
+            <span>{{ v.numero }} · debe {{ v.saldo|cop }}{% if v.fecha_limite %} · hasta el {{ v.fecha_limite|date:"j M"|lower }}{% endif %}</span>
             <a class="kfp-btn kfp-btn-durazno no-print" href="{% url 'abono_nuevo' v.pk %}">Registrar abono</a>
           </div>
           {% endfor %}
@@ -127,8 +125,7 @@
                 <td>{{ v.numero }}</td>
                 <td style="white-space:nowrap">{{ v.fecha|date:"d M y"|lower }}</td>
                 <td>{{ v.num_prendas }}</td>
-                <td>{{ v.get_modalidad_display }}{% if v.modalidad == "credito" and v.saldo > 0 %}<br><small>Debe {{
-                    v.saldo|cop }}</small>{% endif %}</td>
+                <td>{{ v.get_modalidad_display }}{% if v.modalidad == "credito" and v.saldo > 0 %}<br><small>Debe {{ v.saldo|cop }}</small>{% endif %}</td>
                 <td class="derecha" style="white-space:nowrap">{{ v.total|cop }}</td>
                 <td class="no-print"><a class="kfp-link" href="{% url 'recibo' v.pk %}">Ver →</a></td>
               </tr>
@@ -140,8 +137,7 @@
             </tbody>
           </table>
         </div>
-        {% if ventas %}<p class="kfp-nota">Última compra: recibo {{ ventas.0.numero }} · {{
-          ventas.0.get_modalidad_display }}</p>{% endif %}
+        {% if ventas %}<p class="kfp-nota">Última compra: recibo {{ ventas.0.numero }} · {{ ventas.0.get_modalidad_display }}</p>{% endif %}
       </div>
     </div>
   </div>

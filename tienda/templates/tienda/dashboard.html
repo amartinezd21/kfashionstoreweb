@@ -264,8 +264,7 @@
 
 <div class="kfp">
   {% url 'venta_nueva' as url_venta %}
-  {% include "tienda/_encabezado.html" with miga="Inicio" titulo=saludo subtitulo="Una mirada tranquila a todo lo que
-  pasa en tu tienda." boton_url=url_venta boton_texto="Nueva venta" boton_icono="ti-shopping-bag-plus" %}
+  {% include "tienda/_encabezado.html" with miga="Inicio" titulo=saludo subtitulo="Una mirada tranquila a todo lo que pasa en tu tienda." boton_url=url_venta boton_texto="Nueva venta" boton_icono="ti-shopping-bag-plus" %}
 
   <div class="kf-balance">
     {% if r %}
@@ -381,8 +380,7 @@
           <div class="kf-fila-top"><b>{{ v.cliente|default:"Mostrador" }}</b><strong>{{ v.total|cop }}</strong></div>
           <small>
             <a href="{% url 'recibo' v.pk %}" class="text-reset fw-medium">Recibo {{ v.numero }}</a> ·
-            {% if v.fecha|date:"Y-m-d" == hoy|date:"Y-m-d" %}Hoy{% else %}{{ v.fecha|date:"j \d\e F"|lower }}{% endif
-            %}, {{ v.fecha|date:"g:i a" }}
+            {% if v.fecha|date:"Y-m-d" == hoy|date:"Y-m-d" %}Hoy{% else %}{{ v.fecha|date:"j \d\e F"|lower }}{% endif %}, {{ v.fecha|date:"g:i a" }}
           </small>
         </div>
         {% empty %}
@@ -402,6 +400,7 @@
         <h2><i class="ti ti-chart-bar me-1"></i> Así se movió tu semana</h2>
         <small class="kfp-suave" style="font-size:12px">Ventas de los últimos 7 días · {{ semana.0.dia|date:"j" }} al {{
           hoy|date:"j \d\e F"|lower }}</small>
+        <small class="kfp-suave" style="font-size:12px">Ventas de los últimos 7 días · {{ semana.0.dia|date:"j" }} al {{ hoy|date:"j \d\e F"|lower }}</small>
       </div>
       <span class="kfp-etiqueta"><i class="ti ti-coin"></i> {{ total_semana|cop }} en la semana</span>
     </div>

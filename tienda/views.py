@@ -128,7 +128,7 @@ def usuarios(request):
             return redirect("usuarios")
         if form.is_valid():
             form.save()
-            messages.success(request, "Vendedora creada. Deberá cambiar la contraseña al entrar.")
+            messages.success(request, "Vendedora creada correctamente.")
             return redirect("usuarios")
     lista = User.objects.filter(perfil__rol="vendedora")
     return render(request, "tienda/usuarios.html", {"form": form, "lista": lista})

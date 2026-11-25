@@ -37,8 +37,7 @@
   {% if bloqueado %}
   {% include "tienda/_encabezado.html" with titulo="No se puede eliminar" miga=que %}
   {% else %}
-  {% include "tienda/_encabezado.html" with titulo="¿Seguro?" miga=que subtitulo="Revisa antes de confirmar: esta acción
-  no se puede deshacer." %}
+  {% include "tienda/_encabezado.html" with titulo="¿Seguro?" miga=que subtitulo="Revisa antes de confirmar: esta acción no se puede deshacer." %}
   {% endif %}
 
   <div class="kfp-tarjeta kfp-confirmar">
@@ -46,15 +45,13 @@
     <div class="kfp-objeto">{{ obj }}</div>
 
     {% if bloqueado %}
-    <div class="kfp-bloqueo d-flex align-items-center gap-2"><i class="ti ti-hand-stop fs-5"></i> <span>{{ bloqueado
-        }}</span></div>
+    <div class="kfp-bloqueo d-flex align-items-center gap-2"><i class="ti ti-hand-stop fs-5"></i> <span>{{ bloqueado }}</span></div>
     <div class="d-flex gap-2 mt-3"><a class="kfp-btn kfp-btn-claro" href="{{ url_volver }}"><i class="ti ti-arrow-left"></i> Volver</a></div>
     {% else %}
     {% if aviso %}<div class="kfp-suave-caja d-flex align-items-center gap-2" style="font-size:13px"><i class="ti ti-alert-triangle fs-5 text-warning"></i> <span>{{ aviso }}</span></div>{% endif %}
     <form method="post" class="d-flex gap-2 flex-wrap mt-3">{% csrf_token %}
       <a class="kfp-btn kfp-btn-claro" href="{{ url_volver }}"><i class="ti ti-x"></i> Cancelar</a>
-      <button type="submit" class="kfp-btn kfp-btn-peligro"><i class="ti ti-trash"></i> {{ boton|default:"Sí, eliminar"
-        }}</button>
+      <button type="submit" class="kfp-btn kfp-btn-peligro"><i class="ti ti-trash"></i> {{ boton|default:"Sí, eliminar" }}</button>
     </form>
     {% endif %}
   </div>

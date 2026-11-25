@@ -133,7 +133,7 @@ class VendedoraForm(BootstrapMixin, forms.Form):
     def save(self):
         d = self.cleaned_data
         user = User.objects.create_user(d["username"], first_name=d["first_name"], password=d["password"])
-        Perfil.objects.create(user=user, rol="vendedora", debe_cambiar_password=True)
+        Perfil.objects.create(user=user, rol="vendedora", debe_cambiar_password=False)
         return user
 
 
